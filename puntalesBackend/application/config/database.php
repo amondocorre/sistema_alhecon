@@ -69,16 +69,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 | The $query_builder variables lets you determine whether or not to load
 | the query builder class.
+host: 72.52.185.132
+usuario: alhec630_admin
+password: Alhecon.2025
 */
 $active_group = 'default';
 $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-  'hostname' => '67.225.151.112',
-	'username' => 'vanguard_admin_hotel',
+  'hostname' => '72.52.185.132',
+	'username' => 'alhec630_admin',
 	'password' => 'Hotel.hackers.',
-	'database' => 'vanguard_alhecon',
+	'database' => 'Alhecon.2025',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
