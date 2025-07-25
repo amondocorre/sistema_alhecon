@@ -115,13 +115,15 @@ class ComboModel extends CI_Model {
     if (is_array($productos) && !empty($productos)){
       foreach($productos as $product){
         $id_producto = $product->id_producto;
+        $cantidad = $product->cantidad??1;
         if($this->findComboProduct($id_combo,$id_producto) ){
           $this->db->where('id_combo', $id_combo);
           $this->db->where('id_producto', $id_producto);
-          $stateProducto = $this->db->update('combo_producto', ['estado'=>1]);
+          $stateProducto = $this->db->update('combo_producto', ['estado'=>1,'cantidad'=>$cantidad]);
         }else{
           $newProduct['id_combo'] = $id_combo;
           $newProduct['id_producto'] = $id_producto;
+          $newProduct['cantidad'] = $cantidad;
           $newProduct['estado'] = 1;
           $stateProducto = $this->db->insert('combo_producto', $newProduct);
         }
