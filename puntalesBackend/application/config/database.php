@@ -78,10 +78,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-  'hostname' => '72.52.185.132',
+   'hostname' => '72.52.185.132',
 	'username' => 'alhec630_admin',
-	'password' => 'Hotel.hackers.',
-	'database' => 'Alhecon.2025',
+	'password' => 'Alhecon.2025',
+	'database' => 'alhec630_BDalhecon',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
