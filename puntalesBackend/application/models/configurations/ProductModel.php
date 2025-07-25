@@ -42,7 +42,7 @@ class ProductModel extends CI_Model {
         return FALSE; 
     }
     $data['estado'] = 'activo';
-    $data['es_combo']=0;
+    $data['es_combo']='0';
     $data['id_usuario_crea'] = $idUsuario;
     $data['fecha_creacion'] = date('Y-m-d H:i:s');
     $this->db->insert($this->table, $data);
@@ -60,7 +60,7 @@ class ProductModel extends CI_Model {
     if (!$this->validate_pet_data($data, $id)) {
         return FALSE;
     }
-    $data['es_combo']=0;
+    $data['es_combo']='0';
     $data['id_usuario_modifica'] = $idUsuario;
     $data['fecha_update'] = date('Y-m-d H:i:s');
     $this->db->where('id_producto', $id);

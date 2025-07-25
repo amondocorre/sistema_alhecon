@@ -114,7 +114,7 @@ class Impresion extends CI_Controller {
     
   }
   public function imprimirContrato($numero) {
-    if (!validate_http_method($this, ['GET'])) return; 
+    if (!validate_http_method($this, ['POST'])) return; 
     $res = verifyTokenAccess();
     if(!$res) return; 
     $data = json_decode(file_get_contents('php://input'), true);
