@@ -71,6 +71,7 @@ if(!function_exists('verificarDirectorio')){
 if(!function_exists('getDirectorio')){
 	function getDirectorio(){
 		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
+    var_dump('entrando:'.$nombreCarpeta);
 		$ruta = $_SERVER['DOCUMENT_ROOT']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
 			$ruta = $_SERVER['DOCUMENT_ROOT']."/";
