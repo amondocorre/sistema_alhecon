@@ -12,8 +12,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 $hook['post_controller_constructor'][] = [
-  'class'    => '',
-  'function' => 'enable_cors',
-  'filename' => 'cors.php',
-  'filepath' => 'hooks'
+   'class'    => 'Nocache',
+    'function' => 'set_no_cache_headers',
+    'filename' => 'nocache.php',
+    'filepath' => 'hooks'
 ];
