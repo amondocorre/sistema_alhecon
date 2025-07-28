@@ -70,7 +70,7 @@ if(!function_exists('verificarDirectorio')){
 }
 if(!function_exists('getDirectorio')){
 	function getDirectorio(){
-		$nombreCarpeta =  explode('/',$_SERVER['REQUEST_URI']);
+		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
 		$ruta = $_SERVER['DOCUMENT_ROOT']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
 			$ruta = $_SERVER['DOCUMENT_ROOT']."/";
@@ -80,7 +80,7 @@ if(!function_exists('getDirectorio')){
 }
 if(!function_exists('getHttpHost')){
 	function getHttpHost(){
-		$nombreCarpeta =  explode('/',$_SERVER['REQUEST_URI']);
+		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
     $directorio = getDirectorio();
 		$url = "http://" .$_SERVER['HTTP_HOST']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
