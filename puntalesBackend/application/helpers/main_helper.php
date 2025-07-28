@@ -73,8 +73,10 @@ if(!function_exists('getDirectorio')){
 		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
     var_dump('entrando:'.$nombreCarpeta);
 		$ruta = $_SERVER['DOCUMENT_ROOT']."/".$nombreCarpeta."/" ;
+    var_dump('entrando ruta:'.$ruta);
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
 			$ruta = $_SERVER['DOCUMENT_ROOT']."/";
+      var_dump('entrando ruta2:'.$ruta);
 		}
 		return $ruta;
 	}
