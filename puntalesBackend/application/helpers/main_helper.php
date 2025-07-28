@@ -86,7 +86,7 @@ if(!function_exists('getHttpHost')){
     $directorio = getDirectorio();
 		$url = "http://" .$_SERVER['HTTP_HOST']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
-			$url = "https://" .$_SERVER['HTTP_HOST']."/".verificarDirectorio($_SERVER['REQUEST_URI']);
+			$url = "https://" .$_SERVER['HTTP_HOST']."/".verificarDirectorio($_SERVER['REQUEST_URI']).'/';
 		}
 		return $url;
 	}
