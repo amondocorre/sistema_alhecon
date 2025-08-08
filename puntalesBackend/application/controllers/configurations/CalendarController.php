@@ -25,7 +25,7 @@ class CalendarController extends CI_Controller {
       $mes = $data->mes??'';
       $fechas = $this->CalendarModel->poblarCalendarioPorMes($anio,$mes);
       if($fechas){
-        $response = ['status' => 'success','me'=>$fechas];
+        $response = ['status' => 'success','message'=>$fechas];
         return _send_json_response($this, 200, $response);
       }else{
         $response = ['status' => 'error', 'message' =>  array_values($this->form_validation->error_array())];
@@ -39,7 +39,38 @@ class CalendarController extends CI_Controller {
       $data = json_decode(file_get_contents('php://input'), false);
       $anio = $data->anio??'';
       $fechas = $this->CalendarModel->poblarCalendarioPorAño($anio);
-      $response = ['status' => 'success','data'=>$fechas];
+      if($fechas){
+        $response = ['status' => 'success','message'=>'Se Genero correctamente el calendario.'];
+        return _send_json_response($this, 200, $response);
+      }else{
+        $response = ['status' => 'error', 'message' =>  array_values($this->form_validation->error_array())];
+        return _send_json_response($this, 400, $response);
+      }
+    }
+    public function updateDate() {
+      if (!validate_http_method($this, ['POST'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = json_decode(file_get_contents('php://input'), false);
+      $es_feriado = $data->es_feriado??'';
+      $es_laboral = $data->es_laboral??'';
+      $fecha = $data->fecha??'';
+      $nombre_feriado = $data->nombre_feriado??'';
+      $respuesta = $this->CalendarModel->updateDate($fecha,$es_feriado,$es_laboral,$nombre_feriado);
+      if($respuesta){
+        $response = ['status' => 'success','message'=>'Se Genero correctamente el calendario.'];
+        return _send_json_response($this, 200, $response);
+      }else{
+        $response = ['status' => 'error', 'message' =>  array_values($this->form_validation->error_array())];
+        return _send_json_response($this, 400, $response);
+      }
+    }
+    public function getCalendarioByAnio($anio) {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = $this->CalendarModel->getCalendarioByAnio($anio);
+      $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }
 }

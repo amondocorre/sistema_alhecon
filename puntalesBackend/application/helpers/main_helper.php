@@ -66,23 +66,21 @@ if(!function_exists('verificarDirectorio')){
     $primeraParte = isset($partes[0]) ? trim($partes[0], '/') : '';
     $elementos = explode('/', $primeraParte);
     return count($elementos) > 2 ? '' : $primeraParte;
-
   }
 }
 if(!function_exists('getDirectorio')){
 	function getDirectorio(){
-		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
+		$nombreCarpeta =  explode('/',$_SERVER['REQUEST_URI'])[1];
 		$ruta = $_SERVER['DOCUMENT_ROOT']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
-			$ruta = $_SERVER['DOCUMENT_ROOT']."/".verificarDirectorio($_SERVER['REQUEST_URI']);
-      
+			$ruta = $_SERVER['DOCUMENT_ROOT']."/".verificarDirectorio($_SERVER['REQUEST_URI']);;
 		}
 		return $ruta;
 	}
 }
 if(!function_exists('getHttpHost')){
 	function getHttpHost(){
-		$nombreCarpeta =  $_SERVER['REQUEST_URI'];
+		$nombreCarpeta =  explode('/',$_SERVER['REQUEST_URI'])[1];
     $directorio = getDirectorio();
 		$url = "http://" .$_SERVER['HTTP_HOST']."/".$nombreCarpeta."/" ;
 		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {

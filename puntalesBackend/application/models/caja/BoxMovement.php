@@ -22,12 +22,14 @@ class BoxMovement extends CI_Model {
         return array();
     }
   }
-  public function findFilter($tipo,$ifecha,$ffecha){
-    $this->db->select("mc.*, nombre as usuario");
+  public function findFilter($tipo,$ifecha,$ffecha,$id_sucursal){
+    $this->db->select("mc.*, u.nombre as usuario,s.nombre as sucursal,");
     $this->db->from($this->table.' as mc');
     $this->db->where("fecha_movimiento >= '$ifecha'");
     $this->db->where("fecha_movimiento <= '$ffecha 23:59:59'");
     $this->db->join('usuarios as u','u.id_usuario = mc.id_usuario','inner');
+    $this->db->join('sucursal as s','s.id_sucursal = mc.id_sucursal','inner');
+    $this->db->where("mc.id_sucursal", $id_sucursal);
     $this->db->order_by('fecha_movimiento desc');
     $query = $this->db->get();
     if ($query->num_rows() > 0) {

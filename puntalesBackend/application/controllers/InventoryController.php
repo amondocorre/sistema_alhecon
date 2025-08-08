@@ -14,5 +14,12 @@ class InventoryController extends CI_Controller {
       $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }
-
+    public function getInventario($id_sucursal) {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = $this->InventoryModel->getInventario($id_sucursal);
+      $response = ['status' => 'success','data'=>$data];
+      return _send_json_response($this, 200, $response);
+    }
 }

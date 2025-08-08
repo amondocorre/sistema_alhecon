@@ -58,8 +58,8 @@ class CajaModel extends CI_Model {
     $this->db->where('id', $id);
     return $this->db->update($this->table, $data);
   }
-  public function reportCierreTurno($idUsuario,$ifecha,$ffecha){
-    $this->db->select("c.*, nombre as usuario,
+  public function reportCierreTurno($idUsuario,$ifecha,$ffecha,$id_sucursal){
+    $this->db->select("c.*, u.nombre as usuario,s.nombre as sucursal,
       COALESCE((SELECT SUM(p.monto) FROM pago p WHERE p.id_caja = c.id AND p.anulado = 'no' AND p.id_forma_pago = 1), 0.00) AS efectivo,
        COALESCE((SELECT SUM(p.monto) FROM pago p WHERE p.id_caja = c.id AND p.anulado = 'no' AND p.id_forma_pago IN (2,3)), 0.00) AS transferencia,
        COALESCE((SELECT SUM(p.monto) FROM pago p WHERE p.id_caja = c.id AND p.anulado = 'no' AND p.id_forma_pago not IN (1,2,3)), 0.00) AS otros,
@@ -73,6 +73,8 @@ class CajaModel extends CI_Model {
       $this->db->where("c.id_usuario", $idUsuario);
     }
     $this->db->join('usuarios as u','u.id_usuario = c.id_usuario','inner');
+    $this->db->join('sucursal as s','s.id_sucursal = c.id_sucursal','inner');
+    $this->db->where("c.id_sucursal", $id_sucursal);
     $this->db->order_by('fecha_apertura desc');
     $query = $this->db->get();
     if ($query->num_rows() > 0) {

@@ -17,13 +17,14 @@ class ReportController extends CI_Controller {
     if(!$res) return; 
     $data = json_decode(file_get_contents('php://input'), true);
     $id_usuario = $data['id_usuario']??'All';
+    $id_sucursal = $data['id_sucursal']??'0';
     $i_fecha = $data['i_fecha']??'';
     $f_fecha = $data['f_fecha']??'';
     if (!$i_fecha) {
       $i_fecha = date('Y-m-d');
       $f_fecha = date('Y-m-d');
     }
-    $cajas = $this->CajaModel->reportCierreTurno($id_usuario,$i_fecha,$f_fecha);
+    $cajas = $this->CajaModel->reportCierreTurno($id_usuario,$i_fecha,$f_fecha,$id_sucursal);
     foreach($cajas as $key=>$caja){
       $idCaja = $caja->id;
       $ingesos = $caja->ingresos??0.00;

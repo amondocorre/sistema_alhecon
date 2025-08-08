@@ -27,9 +27,14 @@ class DashboardController extends CI_Controller {
     echo json_encode($data);
   }
 
-  public function getIngresosDiarios() {
+  public function getIngresosDiarios($id_sucursal) {
     $this->load->model('dashboard/DashboardModel');
-    $data = $this->DashboardModel->get_ingresos_diarios();
+    $data = $this->DashboardModel->get_ingresos_diarios($id_sucursal);
+    echo json_encode($data);
+  }
+  public function getTotalesInventario($id_sucursal) {
+    $this->load->model('dashboard/DashboardModel');
+    $data = $this->DashboardModel->getTotalesInventario($id_sucursal);
     echo json_encode($data);
   }
 }

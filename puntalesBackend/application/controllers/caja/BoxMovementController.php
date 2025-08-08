@@ -105,10 +105,11 @@ class BoxMovementController extends CI_Controller {
       $res = verifyTokenAccess();
       if(!$res) return; 
       $data = json_decode(file_get_contents('php://input'), true);
+      $id_sucursal = $data['id_sucursal']??'0';
       $ifecha = $data['ifecha']??'';
       $ffecha = $data['ffecha']??'';
       $tipo = $data['tipo']??'';
-      $res = $this->BoxMovement->findFilter($tipo,$ifecha,$ffecha);
+      $res = $this->BoxMovement->findFilter($tipo,$ifecha,$ffecha,$id_sucursal);
       $response = ['status' => 'success','data'=>$res];
       return _send_json_response($this, 200, $response);
     }

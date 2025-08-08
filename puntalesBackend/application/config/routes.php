@@ -148,9 +148,12 @@ $route['api/config/supplier/create'] = 'configurations/SupplierController/create
 $route['api/config/supplier/update/(:any)'] = 'configurations/SupplierController/update/$1';
 $route['api/config/supplier/delete/(:any)'] = 'configurations/SupplierController/delete/$1';
 $route['api/config/supplier/activate/(:any)'] = 'configurations/SupplierController/activate/$1';
+//calendario
 $route['api/config/calendar/obtenerFeriados'] = 'configurations/CalendarController/obtenerFeriados';
 $route['api/config/calendar/poblarCalendarioPorMes'] = 'configurations/CalendarController/poblarCalendarioPorMes';
-$route['api/config/calendar/poblarCalendarioPorAño'] = 'configurations/CalendarController/poblarCalendarioPorAño';
+$route['api/config/calendar/poblarCalendarioPorAnio'] = 'configurations/CalendarController/poblarCalendarioPorAño';
+$route['api/config/calendar/getCalendarioByAnio/(:any)'] = 'configurations/CalendarController/getCalendarioByAnio/$1';
+$route['api/config/calendar/updateDate'] = 'configurations/CalendarController/updateDate';
 // caja
 $route['api/caja/findActive/(:any)'] = 'caja/CajaController/findActive/$1';
 $route['api/caja/findAll'] = 'caja/CajaController/findAll';
@@ -170,9 +173,13 @@ $route['api/rent/getDataRequerid'] = 'RentController/getDataRequerid';
 $route['api/rent/registerRent'] = 'RentController/registerRent';
 $route['api/rent/registerReturn'] = 'RentController/registerReturn';
 $route['api/rent/listRentals'] = 'RentController/listRentals';
+$route['api/rent/getEstadoAlquiler'] = 'RentController/getEstadoAlquiler';
 $route['api/rent/getDataReturn/(:any)'] = 'RentController/getAlquilerById/$1';
+$route['api/rent/getAlquilerDeuda/(:any)'] = 'RentController/getAlquilerDeuda/$1';
+$route['api/rent/registerPagoDeuda'] = 'RentController/registerPagoDeuda';
 //inventarios
 $route['api/inventario/getStock/(:any)'] = 'InventoryController/getStock/$1';
+$route['api/inventario/getInventario/(:any)'] = 'InventoryController/getInventario/$1';
 //compras 
 $route['api/compra/register'] = 'CompraController/register';
 $route['api/compra/update'] = 'CompraController/register';
@@ -209,4 +216,5 @@ $route['api/dashboard/arrivals-departures'] = 'dashboard/DashboardController/get
 $route['api/dashboard/occupation'] = 'dashboard/DashboardController/getOccupation';
 $route['api/dashboard/total_clientes'] = 'dashboard/DashboardController/getTotalClientes';
 $route['api/dashboard/total_mascotas_estancia'] = 'dashboard/DashboardController/getMascotasEstancia';
-$route['api/dashboard/total_ingresos_diarios'] = 'dashboard/DashboardController/getIngresosDiarios';
+$route['api/dashboard/totalIngresosDiarios/(:any)'] = 'dashboard/DashboardController/getIngresosDiarios/$1';
+$route['api/dashboard/getTotalesInventario/(:any)'] = 'dashboard/DashboardController/getTotalesInventario/$1';

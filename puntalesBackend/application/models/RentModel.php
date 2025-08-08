@@ -86,7 +86,7 @@ class RentModel extends CI_Model {
       }
       if($aCuenta>0){
         $observaciones ='';
-        $idPago = $this->insertPago($idDocumento,$idCliente,$idUsuario,$idTurno,$aCuenta,$observaciones,$idFormaPago,$fechaEmision);
+        $idPago = $this->insertPago($idDocumento,$idSucursal,$idCliente,$idUsuario,$idTurno,$aCuenta,$observaciones,$idFormaPago,$fechaEmision);
       }   
       foreach ($productos as $key => $producto){
         $idProducto = $producto->id_producto;
@@ -144,7 +144,7 @@ class RentModel extends CI_Model {
     if($idDocumento){
       if($aCuenta>0){
         $observaciones ='';
-        $idPago = $this->insertPago($idDocumento,$idCliente,$idUsuario,$idTurno,$aCuenta,$observaciones,$idFormaPago,$fechaActual);
+        $idPago = $this->insertPago($idDocumento,$idSucursal,$idCliente,$idUsuario,$idTurno,$aCuenta,$observaciones,$idFormaPago,$fechaActual);
         if(!$idPago) $estado =false;
       }   
       $textProducto='';
@@ -228,6 +228,25 @@ class RentModel extends CI_Model {
     $response->numero = $idDocumento;
     return $response;
   }
+  public function registerPagoDeuda($idTurno,$idSucursal,$idUsuario,$idDocumento,$idFormaPago,$aCuenta,$idCliente){
+    $this->db->trans_start();
+    $fechaActual = date('Y-m-d H:i:s');
+    $aCuenta = number_format($aCuenta, 2, '.', '');
+    $idPago = 0;
+    $estado = true;
+    if($aCuenta>0 && $idDocumento){
+      $observaciones ='';
+      $idPago = $this->insertPago($idDocumento,$idSucursal,$idCliente,$idUsuario,$idTurno,$aCuenta,$observaciones,$idFormaPago,$fechaActual);
+      if(!$idPago) $estado =false;
+    }else $estado =false;
+    if($estado){
+      $this->db->trans_complete();
+    }else $this->db->trans_rollback(); 
+    $response = new stdClass();
+    $response->status = $estado;
+    $response->idPago = $idPago;
+    return $response;
+  }
   public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal){
     $niewData = new stdClass();
     $niewData->id_cliente = $idCliente;
@@ -280,9 +299,10 @@ class RentModel extends CI_Model {
     $id = $this->BoxMovement->create($data);
     return $id;
   }
-  public function insertPago($idDocumento,$idCliente,$idUsuario,$idCaja,$monto,$observaciones,$idFormaPago,$fechaPago) {
+  public function insertPago($idDocumento,$idSucursal,$idCliente,$idUsuario,$idCaja,$monto,$observaciones,$idFormaPago,$fechaPago) {
     $niewData = new stdClass();
     $niewData->id_alquiler_documento = $idDocumento;
+    $niewData->id_sucursal = $idSucursal;
     $niewData->id_cliente = $idCliente;
     $niewData->id_usuario = $idUsuario;
     $niewData->id_caja = $idCaja;
@@ -461,5 +481,27 @@ class RentModel extends CI_Model {
     } else {
         return array();
     }
+  }
+  function getEstadoAlquiler(){
+    $this->db->select('*')->from('estado_alquiler');
+    $query = $this->db->get();
+    if ($query->num_rows() > 0) {
+        return $query->result();
+    } else {
+        return array();
+    }
+  }
+  public function getAlquilerDeuda($idSucursal) {
+    $sql = "CALL getalquilerDeuda('$idSucursal');";
+    $query = $this->db->query($sql);
+    $alquileres = $query->result_array();
+    $query->free_result(); 
+    $this->db->close();
+    $this->db->initialize();
+    foreach($alquileres as $key=>$alquiler){
+      $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
+      $alquileres[$key]['detalle']=$detalle;
+    }
+    return $alquileres;
   }
 }

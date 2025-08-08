@@ -83,6 +83,49 @@ class RentController extends CI_Controller {
         return _send_json_response($this, 400, $response);
       }
     }
+    public function registerPagoDeuda() {
+      if (!validate_http_method($this, ['POST']))return; 
+      $res = verifyTokenAccess();
+      if(!$res)return;
+      $user = $res->user;
+      $idUser = $user->id_usuario;
+      $data = json_decode(file_get_contents('php://input'), false);
+      if (!$data || !isset($data->id_contrato, $data->id_forma_pago, $data->a_cuenta)) {
+        return _send_json_response($this, 400, ['status' => 'error', 'message' => 'Datos incompletos.']);
+      }
+      $idDocumento = $data->id_contrato;
+      $idFormaPago = $data->id_forma_pago;
+      $aCuenta = $data->a_cuenta;
+      $resContrato = $this->RentModel->getDataContratoByID($idDocumento);
+      $resContrato = json_decode(json_encode($resContrato),false);
+      $contrato = $resContrato->contrato??null;
+      if (!$contrato) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
+      }
+      $deuda = (float)$contrato->total_pagar - (float)$contrato->monto_pagado;
+      if ($aCuenta>$deuda) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'El monto recibido es mayor a la deuda por favor verifique bien los datos.']);
+      }
+      $idSucursal=$contrato->id_sucursal??0;
+      $turno = $this->CajaModel->findActive($idUser,$idSucursal);
+      if (!$turno) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'No se encontro ningun turno abierto.']);
+      }
+      if (!$turno->myTurno) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'Solo el usuario que aperturo puede registrar la información.']);
+      }
+      $idTurno = $turno->id;
+      $idCliente = $contrato->id_cliente;
+      $response = $this->RentModel->registerPagoDeuda($idTurno,$idSucursal,$idUser,$idDocumento,$idFormaPago,$aCuenta,$idCliente);
+      if ($response->status) {
+        $response->status = 'success';
+        $response->message='Se registro con éxito el pago.';
+        return _send_json_response($this, 200, $response);
+      } else {
+        $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
+        return _send_json_response($this, 400, $response);
+      }
+    }
     public function delete($id) {
       if (!validate_http_method($this, ['DELETE'])) {
         return; 
@@ -128,6 +171,14 @@ class RentController extends CI_Controller {
       $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }
+    public function getEstadoAlquiler() {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = $this->RentModel->getEstadoAlquiler();
+      $response = ['status' => 'success','data'=>$data];
+      return _send_json_response($this, 200, $response);
+    }
     public function getAlquilerById($id) {
       if (!validate_http_method($this, ['GET'])) return; 
       $res = verifyTokenAccess();
@@ -161,5 +212,12 @@ class RentController extends CI_Controller {
       $response->formasPago = $this->PaymentMethod->findActive();
       return _send_json_response($this, 200, $response);
     }
-
+    public function getAlquilerDeuda($id_sucursal) {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = $this->RentModel->getAlquilerDeuda($id_sucursal);
+      $response = ['status' => 'success','data'=>$data];
+      return _send_json_response($this, 200, $response);
+    }
 }
