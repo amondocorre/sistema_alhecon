@@ -28,7 +28,7 @@ class UserController extends CI_Controller {
           if($file){
             $url = guardarArchivo($id_usuario,$file,'assets/user/');
             if(!$url){
-              $response = ['status' => 'success','message'=>'Ocurrio un error al guardar la foto.'];
+              $response = ['status' => 'success','message'=>'Ocurrió un error inesperado al intertar resetear la contraseña.'];
               return _send_json_response($this, 200, $response);
             }
             $this->User_model->updateFoto($url,$id_usuario);
@@ -62,7 +62,7 @@ class UserController extends CI_Controller {
             if($file){
               $url = guardarArchivo($id,$file,'assets/user/');
               if(!$url){
-                $response = ['status' => 'success','message'=>'Ocurrio un error al guardar la foto.'];
+                $response = ['status' => 'success','message'=>'Ocurrió un error inesperado al intertar resetear la contraseña.'];
                 return _send_json_response($this, 200, $response);
               }
               $this->User_model->updateFoto($url,$id);
@@ -144,6 +144,55 @@ class UserController extends CI_Controller {
       $data = ['user' => $user, 'token' => $token];
 
       return _send_json_response($this, 200, $data);
+    }
+    public function changePassword() {
+      if (!validate_http_method($this, ['POST'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return;
+      $body = json_decode(file_get_contents('php://input'), true);
+      $username = isset($body['username']) ? $body['username'] : null;
+      $password = isset($body['password']) ? $body['password'] : null;
+      $newPassword = isset($body['newPassword']) ? $body['newPassword'] : null;
+      $repeatNewPassword = isset($body['repeatNewPassword']) ? $body['repeatNewPassword'] : null;
+      
+      if (!$username || !$password) {
+          return _send_json_response($this, 400, ['message' => 'Username, password and newPassword are required']);
+      }
+      if ($newPassword !== $repeatNewPassword) {
+          return _send_json_response($this, 403, ['message' => 'The new passwords are not the same']);
+      }
+      $user = $this->User_model->findByUsername($username);
+      if (!$user) {
+          return _send_json_response($this, 401, ['message' => 'Incorrect username/password']);
+      }
+      if (!password_verify($password, $user->password_hash)) {
+          return _send_json_response($this, 401, ['message' => 'Incorrect username/password']);
+      }
+      $id = $user->id_usuario;
+      if ($this->User_model->changePassword($id,$newPassword)) {
+          $response = ['status' => 'success','message'=>'Se cambio la contraseña correctamente.'];
+          return _send_json_response($this, 200, $response);
+      } else {
+        $response = ['status' => 'error', 'message' => 'Ocurrió un error inesperado al intertar resetear la contraseña.'];
+        return _send_json_response($this, 400, $response);
+      }
+    }
+    public function resetPassword($id) {
+      if (!validate_http_method($this, ['PUT'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return;
+  
+      $user = $this->User_model->findIdentity($id);
+      if (!$user) {
+          return _send_json_response($this, 401, ['message' => 'No se encontro el usuario.']);
+      }
+      if ($this->User_model->resetPassword($id)) {
+          $response = ['status' => 'success','message'=>'Se reseteo la contraseña correctamente.'];
+          return _send_json_response($this, 200, $response);
+      } else {
+        $response = ['status' => 'error', 'message' => 'Ocurrió un error inesperado al intertar resetear la contraseña.'];
+        return _send_json_response($this, 400, $response);
+      }
     }
     public function logout(){
       $res = verifyTokenAccess();

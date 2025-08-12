@@ -63,6 +63,8 @@ $route['api/user/getAllUsers'] = 'UserController/getAllUsers';
 $route['api/user/findActive'] = 'UserController/findActive';
 $route['api/user/setStateUser/(:num)'] = 'UserController/setStateUser/$1';
 $route['api/user/getButtonsAccesUser/(:num)'] = 'UserController/getButtonsAccesUser/$1';
+$route['api/user/resetPassword/(:num)'] = 'UserController/resetPassword/$1';
+$route['api/user/changePassword'] = 'UserController/changePassword';
 //perfiles
 $route['api/perfil/getPerfil'] = 'PerfilController/getPerfil';
 $route['api/perfil/findAllPerfil'] = 'PerfilController/findAllPerfil';
@@ -206,6 +208,13 @@ $route['api/client-company/create'] = 'ClientCompanyController/create';
 $route['api/client-company/update/(:any)'] = 'ClientCompanyController/update/$1';
 $route['api/client-company/delete/(:any)'] = 'ClientCompanyController/delete/$1';
 $route['api/client-company/activate/(:any)'] = 'ClientCompanyController/activate/$1';
+//transporte
+$route['api/transport/findActive'] = 'TransportController/findActive';
+$route['api/transport/findAll'] = 'TransportController/findAll';
+$route['api/transport/create'] = 'TransportController/create';
+$route['api/transport/update/(:any)'] = 'TransportController/update/$1';
+$route['api/transport/delete/(:any)'] = 'TransportController/delete/$1';
+$route['api/transport/activate/(:any)'] = 'TransportController/activate/$1';
 // reportes 
 $route['api/report/reportCierreTurno'] = 'reports/ReportController/reportCierreTurno';
 $route['api/report/reportContratos'] = 'reports/ReportController/reportContratos';

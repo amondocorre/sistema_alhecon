@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class User_model extends CI_Model {
     protected $table = 'usuarios'; // Tabla asociada al modelo
-
+    protected $passwordDefault = 'password';
     public function __construct() {
         parent::__construct();
         $this->load->library('form_validation'); // Cargar la librería de validación de formularios
@@ -78,7 +78,7 @@ class User_model extends CI_Model {
       }
     }
     public function create($data) {
-        $data['password_hash'] = 'password';
+        $data['password_hash'] = $this->passwordDefault;
         if (!$this->validate_user_data($data)) {
             return FALSE; 
         }
@@ -98,6 +98,16 @@ class User_model extends CI_Model {
       unset($data['foto']);
       $this->db->where('id_usuario', $id);
       return $this->db->update($this->table, $data);
+    }
+    public function resetPassword($id) {
+      $this->db->where('id_usuario', $id);
+      $this->db->update($this->table,['password_hash'=>password_hash($this->passwordDefault, PASSWORD_DEFAULT)]);
+      return $this->db->affected_rows();
+    }
+    public function changePassword($id,$newPassword) {
+      $this->db->where('id_usuario', $id);
+      $this->db->update($this->table,['password_hash'=>password_hash($newPassword, PASSWORD_DEFAULT)]);
+      return $this->db->affected_rows();
     }
     public function delete($id) {
       $this->db->where('id_usuario', $id);
@@ -172,7 +182,7 @@ class User_model extends CI_Model {
     public function desactiveAccessUser($id_usuario,$id_perfil){
       $this->db->where('id_usuario', $id_usuario);
       $query = $this->db->update('acceso_usuario', ['estado'=>0]);
-      if ($query) {//affets_rows
+      if ($query) {//affected_rows
         return true;     
       } else {
           return false; 
