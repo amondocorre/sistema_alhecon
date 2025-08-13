@@ -139,6 +139,21 @@ class CalendarModel extends CI_Model {
     }
     return $res;
   }
+  public function obtenerCalendario($cantidadMeses){
+    $date = new DateTime(date('Y-m-d'));
+    $numMes = $date->format('m');
+    $date->modify('+'.($cantidadMeses). ' month');
+    $fechaFin = $date->format('Y-m-d');
+    $fechas = $this->db
+        ->select('fecha,es_laboral,es_feriado')
+        ->from('calendario')
+        ->where('fecha >=', date('Y-m-d'))
+        ->where('fecha <=', $fechaFin)
+        ->order_by('fecha', 'ASC')
+        ->get()
+        ->result();
+    return $fechas?$fechas:[];
+  }
   public function getCalendarioByAnio($año){
     $meses = [];
     for ($mes=1; $mes < 13; $mes++) { 

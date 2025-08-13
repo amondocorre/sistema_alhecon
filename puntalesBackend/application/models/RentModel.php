@@ -68,16 +68,18 @@ class RentModel extends CI_Model {
     $idFormaPago = $data->id_forma_pago;
     $fechaEmision = date('Y-m-d H:i:s');
     $fechaEntrega = $data->fecha_entrega??date('Y-m-d');
+    $fechaDevolucion =$data->fecha_devolucion??'';
     $descripcion = $data->descripcion??'';
     $directorObra = $data->director_obra??'';
     $id_estado_producto = 1;
     $cantidadDias = $data->cantidad_dia;
     $idSucursal = $data->id_sucursal;
+    $idTransporte = $data->id_transporte??0;
     $productos = $data->productos;
     $idPago = 0;
     $estado = true;
     
-    $idDocumento = $this->insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$descripcion,$directorObra,$id_estado_producto,$idUsuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal);
+    $idDocumento = $this->insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$idUsuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte);
     if($idDocumento){
       if($garantia>0){
         $tipo ='Ingreso';
@@ -247,7 +249,7 @@ class RentModel extends CI_Model {
     $response->idPago = $idPago;
     return $response;
   }
-  public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal){
+  public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte){
     $niewData = new stdClass();
     $niewData->id_cliente = $idCliente;
     $niewData->fecha_emision = $fechaEmision;
@@ -263,6 +265,8 @@ class RentModel extends CI_Model {
     $niewData->total_pagar = $totalPagar;
     $niewData->cantidad_dias = $cantidadDias;
     $niewData->id_sucursal = $idSucursal;
+    if($fechaDevolucion) $niewData->fecha_devolucion = $fechaDevolucion;
+    if($idTransporte) $niewData->id_transporte = $idTransporte;
     $this->db->insert('alquiler_documento', $niewData);
     return $this->db->insert_id();
   }
@@ -374,7 +378,7 @@ class RentModel extends CI_Model {
 
   public function updateDocumentoAlquiler($idDocumento,$fecha,$id_estado,$costoReposicion){
     $niewData = new stdClass();
-    $niewData->fecha_devolucion = $fecha;
+    //$niewData->fecha_devolucion = $fecha;
     $niewData->id_estado_alquiler = $id_estado;
     $niewData->costo_reposicion =('costo_reposicion+'.$costoReposicion);
     $this->db->where('id_alquiler_documento',$idDocumento);

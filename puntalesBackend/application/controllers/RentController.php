@@ -213,6 +213,7 @@ class RentController extends CI_Controller {
       $response->combos = $this->ComboModel->findActive();
       $response->formasPago = $this->PaymentMethod->findActive();
       $response->laborales = $this->CalendarModel->obtenerLaborales(12);
+      //$response->miCalendario = $this->CalendarModel->obtenerCalendario(12);
       $response->transportes = $this->TransportModel->findActive();
       return _send_json_response($this, 200, $response);
     }

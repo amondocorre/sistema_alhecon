@@ -171,7 +171,7 @@ if(true){
   $pdf->SetFont('helvetica', '', 10);
   /*$pdf->MultiCell(176, 6,  preg_replace('/\s+/', ' ', 'La empresa '.$data->empresa.', alquiler de material de construcción mediante el presente
                                                         documento tiene como finalidad aclarar.'), 0, 'L', false,1);
-  */$text ="La empresa '.$data->empresa.', alquiler de material de construcción mediante el presente documento tiene como finalidad aclarar.";
+  */$text ="La empresa ".$data->empresa.", alquiler de material de construcción mediante el presente documento tiene como finalidad aclarar.";
   
   $html = '<div align="justify">'.$text.'</div>';
   $pdf->WriteHTMLCell(0, 5, $pdf->GetX(), $pdf->GetY(), $html, 0, 1, false, true, 'J');
