@@ -64,8 +64,8 @@ class Client_model extends CI_Model {
           return FALSE; 
       }
       $data['id_status'] = '1';
-      return $this->db->insert($this->table, $data);
-      //return $this->db->insert_id();
+      $this->db->insert($this->table, $data);
+      return $this->db->insert_id();
     }
   public function update($id, $data) {
     if (!$this->validate_pefil_data($data, $id)) {
