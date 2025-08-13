@@ -9,7 +9,9 @@ class RentController extends CI_Controller {
         $this->load->model('configurations/PaymentMethod');
         $this->load->model('configurations/ComboModel');
         $this->load->model('configurations/ProductModel');
-        $this->load->model('caja/CajaModel');
+        $this->load->model('configurations/CalendarModel');
+        $this->load->model('caja/CajaModel');       
+        $this->load->model('TransportModel');
         $this->load->library('pdf');
     } 
     public function registerRent() {
@@ -210,6 +212,8 @@ class RentController extends CI_Controller {
       $response->productos = $this->ProductModel->findActive();
       $response->combos = $this->ComboModel->findActive();
       $response->formasPago = $this->PaymentMethod->findActive();
+      $response->laborales = $this->CalendarModel->obtenerLaborales(12);
+      $response->transportes = $this->TransportModel->findActive();
       return _send_json_response($this, 200, $response);
     }
     public function getAlquilerDeuda($id_sucursal) {

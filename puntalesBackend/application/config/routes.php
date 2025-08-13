@@ -156,6 +156,7 @@ $route['api/config/calendar/poblarCalendarioPorMes'] = 'configurations/CalendarC
 $route['api/config/calendar/poblarCalendarioPorAnio'] = 'configurations/CalendarController/poblarCalendarioPorAño';
 $route['api/config/calendar/getCalendarioByAnio/(:any)'] = 'configurations/CalendarController/getCalendarioByAnio/$1';
 $route['api/config/calendar/updateDate'] = 'configurations/CalendarController/updateDate';
+$route['api/config/calendar/obtenerLaborales'] = 'configurations/CalendarController/obtenerLaborales';
 // caja
 $route['api/caja/findActive/(:any)'] = 'caja/CajaController/findActive/$1';
 $route['api/caja/findAll'] = 'caja/CajaController/findAll';

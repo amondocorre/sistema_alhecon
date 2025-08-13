@@ -71,7 +71,6 @@ class CalendarModel extends CI_Model {
     }
     return $feriados;
   }
-
   public function poblarCalendarioPorAño($año) {
     $feriados = $this->obtenerFeriados($año);
     $inicio = new DateTime("$año-01-01");
@@ -120,8 +119,25 @@ class CalendarModel extends CI_Model {
         'es_fin_de_semana' => $es_fin_de_semana
     ];
   }
-  public function getFeriados($numMeses){
-    
+  public function obtenerLaborales($cantidadMeses){
+    $date = new DateTime(date('Y-m-d'));
+    $numMes = $date->format('m');
+    $date->modify('+'.($cantidadMeses). ' month');
+    $fechaFin = $date->format('Y-m-d');
+    $fechas = $this->db
+        ->select('*')
+        ->from('calendario')
+        ->where('fecha >=', date('Y-m-d'))
+        ->where('es_laboral', 1)
+        ->where('fecha <=', $fechaFin)
+        ->order_by('fecha', 'ASC')
+        ->get()
+        ->result();
+    $res = array();
+    foreach($fechas as $key=>$fecha){
+      array_push($res,$fecha->fecha);
+    }
+    return $res;
   }
   public function getCalendarioByAnio($año){
     $meses = [];
@@ -179,6 +195,5 @@ class CalendarModel extends CI_Model {
     }
 
     return $estructura;
-}
-
+  }
 }

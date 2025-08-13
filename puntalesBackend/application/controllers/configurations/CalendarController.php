@@ -73,4 +73,13 @@ class CalendarController extends CI_Controller {
       $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }
+    public function obtenerLaborales() {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $cantidadMeses = 12;
+      $fechas = $this->CalendarModel->obtenerLaborales($cantidadMeses);
+      $response = ['status' => 'success','data'=>$fechas];
+      return _send_json_response($this, 200, $response);
+    }
 }
