@@ -14,7 +14,7 @@ class ComboModel extends CI_Model {
   }
   public function findAll() {
     $url = getHttpHost();
-    $this->db->select("c.id_producto,c.nombre,c.precio_hora,c.precio_dia,c.precio_30dias,c.estado,concat('$url',c.fotografia) as fotografia,c.uso_dias,
+    $this->db->select("c.id_producto,c.nombre,c.precio_hora,c.precio_dia,c.precio_30dias,c.estado,concat('$url',c.fotografia) as fotografia,c.uso_dias,c.visible,
             COALESCE(
                   JSON_ARRAYAGG(
                       JSON_OBJECT(
@@ -98,6 +98,7 @@ class ComboModel extends CI_Model {
     if (!$this->validate_pet_data($data, $id)) {
         return FALSE;
     }
+    unset($data['fotografia']);
     $data['es_combo'] = '1';
     $this->db->where('id_producto', $id);
     $data['id_usuario_modifica'] = $idUsuario;

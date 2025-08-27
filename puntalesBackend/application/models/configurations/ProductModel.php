@@ -14,7 +14,7 @@ class ProductModel extends CI_Model {
   }
   public function findAll() {
     $url = getHttpHost();
-    $this->db->select("id_producto, nombre, descripcion, precio_hora, precio_dia, precio_30dias, precio_reposicion, estado, concat('$url',fotografia) as fotografia, fecha_creacion, fecha_update, id_usuario_crea, id_usuario_modifica,uso_dias");
+    $this->db->select("id_producto, nombre, descripcion, precio_hora, precio_dia, precio_30dias, precio_reposicion, estado, concat('$url',fotografia) as fotografia, fecha_creacion, fecha_update, id_usuario_crea, id_usuario_modifica,uso_dias,visible");
     $this->db->from($this->table); 
     $this->db->where('es_combo','0');
     $query = $this->db->get();
@@ -60,6 +60,7 @@ class ProductModel extends CI_Model {
     if (!$this->validate_pet_data($data, $id)) {
         return FALSE;
     }
+    unset($data['fotografia']);
     $data['es_combo']='0';
     $data['id_usuario_modifica'] = $idUsuario;
     $data['fecha_update'] = date('Y-m-d H:i:s');
