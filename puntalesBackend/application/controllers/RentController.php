@@ -66,6 +66,14 @@ class RentController extends CI_Controller {
       $data = json_decode(json_encode($data),false);
       $files = $_FILES??null;
       $id_sucursal=$data->id_sucursal??0;
+      $idDocumento = $data->id_alquiler_documento??0;
+      $contrato = $this->RentModel->findIdentity($idDocumento);
+      if (!$contrato) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
+      }
+      if ($contrato->id_estado_alquiler!=2) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'No se puede realizar la Recepción.']);
+      }
       $turno = $this->CajaModel->findActive($idUser,$id_sucursal);
       if (!$turno) {
         $response = ['status' => 'error','message'=>'No se encontro ningun turno abierto.'];
@@ -104,7 +112,9 @@ class RentController extends CI_Controller {
       if (!$contrato) {
         return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
       }
-      $deuda = (float)$contrato->total_pagar - (float)$contrato->monto_pagado;
+      $deuda = ((float)$contrato->total_pagar + (float)$contrato->precio_atraso) - (float)$contrato->monto_pagado;
+      $aCuenta = round($aCuenta, 2);
+      $deuda = round($deuda, 2);
       if ($aCuenta>$deuda) {
         return _send_json_response($this, 400, ['status' => 'error','message'=>'El monto recibido es mayor a la deuda por favor verifique bien los datos.']);
       }
@@ -122,6 +132,35 @@ class RentController extends CI_Controller {
       if ($response->status) {
         $response->status = 'success';
         $response->message='Se registro con éxito el pago.';
+        return _send_json_response($this, 200, $response);
+      } else {
+        $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
+        return _send_json_response($this, 400, $response);
+      }
+    }
+    public function registerEntrega($idDocumento) {
+      if (!validate_http_method($this, ['PUT']))return; 
+      $res = verifyTokenAccess();
+      if(!$res)return;
+      $user = $res->user;
+      $idUser = $user->id_usuario;
+      $contrato = $this->RentModel->findIdentity($idDocumento);
+      if (!$contrato) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
+      }
+      if ($contrato->id_estado_alquiler!=1) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'No se puede realizar la entrega de contrato.']);
+      }
+      $fechaEntrega = $contrato->fecha_entrega??'';
+      if ($fechaEntrega>date('Y-m-d')) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'El contrado esta firmado para entragar apartir de la fecha: '.$fechaEntrega.'.']);
+      }
+      $idSucursal = $contrato->id_sucursal??0;
+      $response = $this->RentModel->registerEntrega($idUser,$idDocumento);
+      if ($response) {
+        $response = new stdClass();
+        $response->status = 'success';
+        $response->message='Se registro con éxito la Entrega.';
         return _send_json_response($this, 200, $response);
       } else {
         $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
@@ -170,6 +209,19 @@ class RentController extends CI_Controller {
       $f_fecha = $data['f_fecha']??'';
       $id_sucursal = $data['id_sucursal']??'';
       $data = $this->RentModel->getAlquilereFilter($id_sucursal,$estado,$i_fecha,$f_fecha);
+      $response = ['status' => 'success','data'=>$data];
+      return _send_json_response($this, 200, $response);
+    }
+    public function listEntregas() {
+      if (!validate_http_method($this, ['POST'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = json_decode(file_get_contents('php://input'), true);
+      $estado = $data['id_estado']??'0';
+      $i_fecha = $data['i_fecha']??'';
+      $f_fecha = $data['f_fecha']??'';
+      $id_sucursal = $data['id_sucursal']??'';
+      $data = $this->RentModel->getAlquilerEntregaFilter($id_sucursal,$estado,$i_fecha,$f_fecha);
       $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }

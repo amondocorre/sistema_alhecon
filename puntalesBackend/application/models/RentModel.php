@@ -136,7 +136,10 @@ class RentModel extends CI_Model {
     $totalPagar = $total;
     $idFormaPago = $data->id_forma_pago;
     $observaciones = $data->observacion??'';
-    $id_estado = 2;
+    $precioTotalAtraso = $data->precio_total_atraso??0;
+    $diasAtraso = $data->dias_atraso??0;
+    $costosAtraso = isset($data->costos_atraso)?json_decode($data->costos_atraso,false):[];
+    $id_estado = 5;// estado del alquiler Finalizado
     $idSucursal = $data->id_sucursal;
     $productos = $data->productos?json_decode($data->productos,false):[];
     $idPago = 0;
@@ -151,10 +154,15 @@ class RentModel extends CI_Model {
       }   
       $textProducto='';
       $idDevolucion = $this->insertDocumentoDevolucion($idDocumento,$idCliente,$idUsuario,$observaciones,$costoReposicion,$fechaActual);
-      $update = $this->updateDocumentoAlquiler($idDocumento,$fechaActual,$id_estado,$costoReposicion);
+      $update = $this->updateDocumentoAlquiler($idDocumento,$fechaActual,$id_estado,$costoReposicion,$precioTotalAtraso,$diasAtraso);
       if($idDevolucion && $update){
         foreach ($productos as $key => $producto){
           $idAlquilerDetalle = $producto->id_alquiler_detalle;
+          if($precioTotalAtraso>0){
+            $costos = $costosAtraso->$idAlquilerDetalle??null;
+            $costo = $costos->precio_atraso_total??0;
+            if($costo>0) $this->updateCostoAtradoDetalle($idAlquilerDetalle,$costo); 
+          }
           $esCombo = $producto->es_combo??'0';
           if($esCombo==0){
             $estados = $producto->estados??[];
@@ -249,6 +257,22 @@ class RentModel extends CI_Model {
     $response->idPago = $idPago;
     return $response;
   }
+  public function registerEntrega($idUsuario,$idDocumento){
+    $this->db->trans_start();
+    $fechaActual = date('Y-m-d H:i:s');
+    $estado = false;
+    $id_estado = 2;// estado alguiler entregado
+    if($idDocumento){
+      $observaciones ='';
+      if($this->updateEstadoDocumentoAlquiler($idDocumento,$id_estado)) {
+        $estado =true;
+      }
+    };
+    if($estado){
+      $this->db->trans_complete();
+    }else $this->db->trans_rollback(); 
+    return $estado;
+  }
   public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte){
     $niewData = new stdClass();
     $niewData->id_cliente = $idCliente;
@@ -265,6 +289,7 @@ class RentModel extends CI_Model {
     $niewData->total_pagar = $totalPagar;
     $niewData->cantidad_dias = $cantidadDias;
     $niewData->id_sucursal = $idSucursal;
+    $niewData->precio_atraso = 0;
     if($fechaDevolucion) $niewData->fecha_devolucion = $fechaDevolucion;
     if($idTransporte) $niewData->id_transporte = $idTransporte;
     $this->db->insert('alquiler_documento', $niewData);
@@ -376,11 +401,27 @@ class RentModel extends CI_Model {
     return $estadoUpdate;
   }
 
-  public function updateDocumentoAlquiler($idDocumento,$fecha,$id_estado,$costoReposicion){
+  public function updateDocumentoAlquiler($idDocumento,$fecha,$id_estado,$costoReposicion,$precioTotalAtraso,$diasAtraso){
     $niewData = new stdClass();
     //$niewData->fecha_devolucion = $fecha;
     $niewData->id_estado_alquiler = $id_estado;
-    $niewData->costo_reposicion =('costo_reposicion+'.$costoReposicion);
+    $niewData->costo_reposicion = ('costo_reposicion+'.$costoReposicion);
+    $niewData->precio_atraso = $precioTotalAtraso;
+    $niewData->dias_atraso = $diasAtraso;
+    $this->db->where('id_alquiler_documento',$idDocumento);
+    $this->db->update('alquiler_documento', $niewData);
+    return $this->db->affected_rows();
+  }
+  function updateCostoAtradoDetalle($idAlquilerDetalle,$costo){
+    $newData = new stdClass();
+    $newData->precio_atraso = $costo;
+    $this->db->where('id_alquiler_detalle',$idAlquilerDetalle);
+    $this->db->update('alquiler_detalle', $newData);
+    return $this->db->affected_rows();
+  }
+  public function updateEstadoDocumentoAlquiler($idDocumento,$id_estado){
+    $niewData = new stdClass();
+    $niewData->id_estado_alquiler = $id_estado;
     $this->db->where('id_alquiler_documento',$idDocumento);
     $this->db->update('alquiler_documento', $niewData);
     return $this->db->affected_rows();
@@ -445,6 +486,21 @@ class RentModel extends CI_Model {
     $this->db->initialize();
     foreach($alquileres as $key=>$alquiler){
       $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
+      usort($detalle, function($a, $b) {return $a->nombre <=> $b->nombre;});
+      $alquileres[$key]['detalle']=$detalle;
+    }
+    return $alquileres;
+  }
+  public function getAlquilerEntregaFilter($idSucursal,$idEstado,$i_fecha,$f_fecha) {
+    $sql = "CALL getAlquilerEntregaFilter('$idSucursal','$idEstado','$i_fecha','$f_fecha');";
+    $query = $this->db->query($sql);
+    $alquileres = $query->result_array();
+    $query->free_result(); 
+    $this->db->close();
+    $this->db->initialize();
+    foreach($alquileres as $key=>$alquiler){
+      $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
+      usort($detalle, function($a, $b) {return $a->nombre <=> $b->nombre;});
       $alquileres[$key]['detalle']=$detalle;
     }
     return $alquileres;

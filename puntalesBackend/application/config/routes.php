@@ -180,6 +180,8 @@ $route['api/rent/getEstadoAlquiler'] = 'RentController/getEstadoAlquiler';
 $route['api/rent/getDataReturn/(:any)'] = 'RentController/getAlquilerById/$1';
 $route['api/rent/getAlquilerDeuda/(:any)'] = 'RentController/getAlquilerDeuda/$1';
 $route['api/rent/registerPagoDeuda'] = 'RentController/registerPagoDeuda';
+$route['api/rent/registerEntrega/(:any)'] = 'RentController/registerEntrega/$1';
+$route['api/rent/listEntregas'] = 'RentController/listEntregas';
 //inventarios
 $route['api/inventario/getStock/(:any)'] = 'InventoryController/getStock/$1';
 $route['api/inventario/getInventario/(:any)'] = 'InventoryController/getInventario/$1';

@@ -245,12 +245,12 @@ if(true){
               //$pdf->SetDrawColor(0, 102, 204);
               $pdf->SetFont('dejavusans', '', 9);
               //$pdf->Cell(10); // sangría
-              $pdf->Cell(141, 6, '     ↳ ' . $item->nombre, 'LRB', 0, 'L');
+              $pdf->Cell(141, 6, '  ↳ ' . $item->nombre, 'LRB', 0, 'L');
               $pdf->Cell(25, 6, number_format($item->precio_reposicion, 2), 'LRB', 1, 'C');
               $pdf->SetFont('helvetica', '', 10);
             }else{
               $pdf->SetFont('dejavusans', '', 9);
-              $pdf->Cell(141, 6, ' ↳ ' . $item->nombre, 'LR', 0, 'L');
+              $pdf->Cell(141, 6, '  ↳ ' . $item->nombre, 'LR', 0, 'L');
               $pdf->Cell(25, 6, number_format($item->precio_reposicion, 2), 'LR', 1, 'C');
               $pdf->SetFont('helvetica', '', 10);
             }

@@ -47,8 +47,8 @@ class CalendarModel extends CI_Model {
     $newData['es_feriado'] = $es_feriado; 
     $newData['es_laboral'] = $es_laboral; 
     $newData['nombre_feriado'] = $nombre_feriado; 
-    $this->db->update('calendario',$newData,['fecha'=>$fecha]);
-    return $this->db->affected_rows(); 
+    $res = $this->db->update('calendario',$newData,['fecha'=>$fecha]);
+    return $res;// $this->db->affected_rows(); 
   }
   function obtenerFeriados($año) {
     $apiKey = 'LEobTgsDC3DV9UH9HwK4SMzX4yN4ewye';
