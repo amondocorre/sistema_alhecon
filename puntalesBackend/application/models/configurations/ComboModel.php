@@ -75,6 +75,39 @@ class ComboModel extends CI_Model {
         return array(); 
     }
   }
+  public function findVisible(){
+    $url = getHttpHost();
+    $this->db->select("c.id_producto,c.nombre,c.precio_hora,c.precio_dia,c.precio_30dias,c.estado,concat('$url',c.fotografia) as fotografia,c.es_combo,c.uso_dias,
+            COALESCE(
+                  JSON_ARRAYAGG(
+                      JSON_OBJECT(
+                          'id_producto', p.id_producto,
+                          'nombre', p.nombre,
+                          'fotografia', concat('$url',p.fotografia),
+                          'cantidad', cp.cantidad
+                      )
+                  ), 
+                  '[]'
+              ) AS productos");
+    $this->db->from($this->table . ' AS c'); 
+    $this->db->join('combo_producto as cp','cp.id_combo = c.id_producto and cp.estado =1','inner');
+    $this->db->join('producto as p ',' p.id_producto = cp.id_producto','inner');
+    $this->db->where('c.es_combo','1');
+    $this->db->where('c.estado', 'activo');
+    $this->db->where('c.visible', 'si');
+    $this->db->group_by('c.id_producto,c.nombre,c.precio_hora,c.precio_dia,c.precio_30dias,c.estado,c.fotografia,c.uso_dias');
+    $this->db->order_by('c.nombre');
+    $query = $this->db->get();
+    if ($query->num_rows() > 0) {
+      $combos =  $query->result(); 
+      foreach($combos as $combo){
+        $combo->productos = $combo->productos?json_decode($combo->productos,true):[];
+      }
+      return $combos;
+    } else {
+        return array(); 
+    }
+  }
   public function create($data,$idUsuario) {
     if (!$this->validate_pet_data($data)) {
         return FALSE; 

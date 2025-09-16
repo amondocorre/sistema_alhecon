@@ -75,11 +75,13 @@ class RentModel extends CI_Model {
     $cantidadDias = $data->cantidad_dia;
     $idSucursal = $data->id_sucursal;
     $idTransporte = $data->id_transporte??0;
+    $direccion = $data->direccion??'';
+    $direccionGps = $data->direccion_gps??'';
     $productos = $data->productos;
     $idPago = 0;
     $estado = true;
     
-    $idDocumento = $this->insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$idUsuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte);
+    $idDocumento = $this->insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$idUsuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte,$direccion,$direccionGps);
     if($idDocumento){
       if($garantia>0){
         $tipo ='Ingreso';
@@ -257,14 +259,46 @@ class RentModel extends CI_Model {
     $response->idPago = $idPago;
     return $response;
   }
-  public function registerEntrega($idUsuario,$idDocumento){
+  public function registerPagosDeudas($idTurno,$idSucursal,$idUsuario,$contratos,$idFormaPago,$aCuenta){
+    $this->db->trans_start();
+    $fechaActual = date('Y-m-d H:i:s');
+    $aCuenta = number_format($aCuenta, 2, '.', '');
+    $idPago = 0;
+    $estado = true;
+    $pagos = array();
+    foreach($contratos as $key=>$contrato){
+      $idDocumento = $contrato->id_alquiler_documento;
+      $saldo = $contrato->deuda??0;
+      $idCliente = $contrato->id_cliente;
+      $aCuentaAux = $aCuenta>=$saldo?$saldo:$aCuenta;
+      $aCuenta = $aCuenta>=$saldo?$aCuenta-$saldo:0;
+      if($aCuentaAux>0 && $idDocumento){
+        $observaciones ='';
+        $idPago = $this->insertPago($idDocumento,$idSucursal,$idCliente,$idUsuario,$idTurno,$aCuentaAux,$observaciones,$idFormaPago,$fechaActual);
+        if(!$idPago){ 
+          $estado =false;
+          break;
+        }
+        array_push($pagos,$idPago);
+        if($aCuenta<=0)break;
+      }else break;
+    }
+    if($estado){
+      $this->db->trans_complete();
+    }else $this->db->trans_rollback(); 
+    $response = new stdClass();
+    $response->status = $estado;
+    $response->pagos = $pagos;
+    return $response;
+  }
+  public function registerEntrega($idUsuario,$idDocumento,$idArchivoTransporte){
     $this->db->trans_start();
     $fechaActual = date('Y-m-d H:i:s');
     $estado = false;
     $id_estado = 2;// estado alguiler entregado
     if($idDocumento){
       $observaciones ='';
-      if($this->updateEstadoDocumentoAlquiler($idDocumento,$id_estado)) {
+      if($this->updateEstadoDocumentoAlquiler($idDocumento,$id_estado,$idArchivoTransporte)) {
         $estado =true;
       }
     };
@@ -273,7 +307,7 @@ class RentModel extends CI_Model {
     }else $this->db->trans_rollback(); 
     return $estado;
   }
-  public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte){
+  public function insertDocumento($idCliente,$fechaEmision,$fechaEntrega,$fechaDevolucion,$descripcion,$directorObra,$id_estado_producto,$id_usuario,$subTotal,$descuento,$total,$garantia,$totalPagar,$cantidadDias,$idSucursal,$idTransporte,$direccion,$direccionGps){
     $niewData = new stdClass();
     $niewData->id_cliente = $idCliente;
     $niewData->fecha_emision = $fechaEmision;
@@ -290,8 +324,11 @@ class RentModel extends CI_Model {
     $niewData->cantidad_dias = $cantidadDias;
     $niewData->id_sucursal = $idSucursal;
     $niewData->precio_atraso = 0;
+    $niewData->direccion_obra = $direccion;
+    $niewData->ubicacion_gps_obra = $direccionGps;
     if($fechaDevolucion) $niewData->fecha_devolucion = $fechaDevolucion;
-    if($idTransporte) $niewData->id_transporte = $idTransporte;
+    //if($idTransporte) 
+    $niewData->id_transporte = $idTransporte;
     $this->db->insert('alquiler_documento', $niewData);
     return $this->db->insert_id();
   }
@@ -419,9 +456,10 @@ class RentModel extends CI_Model {
     $this->db->update('alquiler_detalle', $newData);
     return $this->db->affected_rows();
   }
-  public function updateEstadoDocumentoAlquiler($idDocumento,$id_estado){
+  public function updateEstadoDocumentoAlquiler($idDocumento,$id_estado,$idArchivoTransporte){
     $niewData = new stdClass();
     $niewData->id_estado_alquiler = $id_estado;
+    $niewData->id_archivo_transporte = $idArchivoTransporte;
     $this->db->where('id_alquiler_documento',$idDocumento);
     $this->db->update('alquiler_documento', $niewData);
     return $this->db->affected_rows();
@@ -478,6 +516,7 @@ class RentModel extends CI_Model {
   }
 //------------------------------------------------------------------------
   public function getAlquilereFilter($idSucursal,$idEstado,$i_fecha,$f_fecha) {
+    $url = getHttpHost();
     $sql = "CALL getalquilereFilter('$idSucursal','$idEstado','$i_fecha','$f_fecha');";
     $query = $this->db->query($sql);
     $alquileres = $query->result_array();
@@ -488,10 +527,12 @@ class RentModel extends CI_Model {
       $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
       usort($detalle, function($a, $b) {return $a->nombre <=> $b->nombre;});
       $alquileres[$key]['detalle']=$detalle;
+      $alquileres[$key]['fotografia_movilidad']=isset($alquiler['fotografia_movilidad'])?$url.$alquiler['fotografia_movilidad']:null;
     }
     return $alquileres;
   }
   public function getAlquilerEntregaFilter($idSucursal,$idEstado,$i_fecha,$f_fecha) {
+    $url = getHttpHost();
     $sql = "CALL getAlquilerEntregaFilter('$idSucursal','$idEstado','$i_fecha','$f_fecha');";
     $query = $this->db->query($sql);
     $alquileres = $query->result_array();
@@ -501,12 +542,44 @@ class RentModel extends CI_Model {
     foreach($alquileres as $key=>$alquiler){
       $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
       usort($detalle, function($a, $b) {return $a->nombre <=> $b->nombre;});
+      $alquileres[$key]['fotografia_movilidad']=isset($alquiler['fotografia_movilidad'])?$url.$alquiler['fotografia_movilidad']:null;
       $alquileres[$key]['detalle']=$detalle;
     }
     return $alquileres;
   }
+  public function getAlquilerClienteFilter($idCliente,$idEstado) {
+    $url = getHttpHost();
+    $sql = "CALL getAlquilerClienteFilter('$idCliente','$idEstado');";
+    $query = $this->db->query($sql);
+    $alquileres = $query->result_array();
+    $query->free_result(); 
+    $this->db->close();
+    $this->db->initialize();
+    foreach($alquileres as $key=>$alquiler){
+      $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
+      usort($detalle, function($a, $b) {return $a->nombre <=> $b->nombre;});
+      $alquileres[$key]['detalle']=$detalle;
+      $alquileres[$key]['fotografia_movilidad']=isset($alquiler['fotografia_movilidad'])?$url.$alquiler['fotografia_movilidad']:null;
+    }
+    return $alquileres;
+  }
   public function getAlquilerById($idContrato) {
+    $url = getHttpHost();
     $sql = "CALL getAlquilerById('$idContrato');";
+    $query = $this->db->query($sql);
+    $alquileres = $query->result_array();
+    $query->free_result(); 
+    $this->db->close();
+    $this->db->initialize();
+    foreach($alquileres as $key=>$alquiler){
+      $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
+      $alquileres[$key]['detalle']=$detalle;
+      $alquileres[$key]['fotografia_movilidad']=isset($alquiler['fotografia_movilidad'])?$url.$alquiler['fotografia_movilidad']:null;
+    }
+    return $alquileres[0]??null;
+  }
+  public function getProductosAlquilerById($idContrato) {
+    $sql = "CALL getProductosAlquilerById('$idContrato');";
     $query = $this->db->query($sql);
     $alquileres = $query->result_array();
     $query->free_result(); 
@@ -563,5 +636,52 @@ class RentModel extends CI_Model {
       $alquileres[$key]['detalle']=$detalle;
     }
     return $alquileres;
+  }
+  public function getAlquileres($limit, $offset,$idSucursal) {
+    $this->db->select("a.id_alquiler_documento, a.fecha_devolucion,
+        CONCAT(c.nombres, ' ', c.ap_paterno, ' ', c.ap_materno) AS cliente,
+        (a.total_pagar+a.precio_atraso) as total_pagar,
+        IFNULL(pagos.monto_pagado, 0) AS a_cuenta");
+    $this->db->from("alquiler_documento a");
+    $this->db->join("cliente c", "c.id_cliente = a.id_cliente");
+    $this->db->join("estado_alquiler ea", "ea.id_estado_alquiler = a.id_estado_alquiler");
+    $this->db->join("(SELECT id_alquiler_documento, SUM(monto) AS monto_pagado 
+                      FROM pago 
+                      WHERE anulado = 'no' 
+                      GROUP BY id_alquiler_documento) pagos", 
+                      "pagos.id_alquiler_documento = a.id_alquiler_documento", "left");
+    if($idSucursal>0) $this->db->where('id_sucursal',$idSucursal);
+    $this->db->where_in('a.id_estado_alquiler', [2]);
+    $this->db->order_by('fecha_devolucion', 'asc');
+    $this->db->limit($limit, $offset);
+    return $this->db->get()->result();
+  }
+  public function getAlquileresEntrega($limit, $offset,$idSucursal) {
+    $this->db->select("a.id_alquiler_documento, a.fecha_entrega,
+        CONCAT(c.nombres, ' ', c.ap_paterno, ' ', c.ap_materno) AS cliente,
+        (a.total_pagar+a.precio_atraso) as total_pagar,
+        IFNULL(pagos.monto_pagado, 0) AS a_cuenta");
+    $this->db->from("alquiler_documento a");
+    $this->db->join("cliente c", "c.id_cliente = a.id_cliente");
+    $this->db->join("estado_alquiler ea", "ea.id_estado_alquiler = a.id_estado_alquiler");
+    $this->db->join("(SELECT id_alquiler_documento, SUM(monto) AS monto_pagado 
+                      FROM pago 
+                      WHERE anulado = 'no' 
+                      GROUP BY id_alquiler_documento) pagos", 
+                      "pagos.id_alquiler_documento = a.id_alquiler_documento", "left");
+    if($idSucursal>0)  $this->db->where('id_sucursal',$idSucursal);
+    $this->db->where('a.id_estado_alquiler',1);
+    $this->db->limit($limit, $offset);
+    return $this->db->get()->result();
+  }
+  public function getTotalAlquileres($idSucursal) {
+    if($idSucursal>0)  $this->db->where('id_sucursal', $idSucursal);
+    $this->db->where_in('id_estado_alquiler', [2]);
+    return $this->db->count_all_results('alquiler_documento');
+  }
+  public function getTotalAlquileresEntrega($idSucursal) {
+    if($idSucursal>0) $this->db->where('id_sucursal', $idSucursal);
+    $this->db->where('id_estado_alquiler',1);
+    return $this->db->count_all_results('alquiler_documento');
   }
 }

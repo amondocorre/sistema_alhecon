@@ -97,7 +97,45 @@ if (!function_exists('perfil_existe')) {
       return $query->num_rows() > 0;
   }
 }
+if (!function_exists('registerArchivo')) {
+  function registerArchivo($urlServer,$idUsuario,$fecha,$direcion,$file) {
+      $CI =& get_instance();
+      $query = $CI->db->query("select auto_increment from information_schema.tables where table_name = 'alquiler_documento'and table_schema = DATABASE();");
+      $nombre = $query->row()->auto_increment??0;
+      $fileType = $file['type']??'';
+      $parts = explode('/', $fileType);  
+      $ext= end($parts);
+      $data = new stdClass();
+      $data->nombre = $nombre.'.'.$ext;
+      $data->url = $direcion.$nombre.'.'.$ext;
+      $data->url_server = $urlServer;
+      $data->id_usuario = $idUsuario;
+      $data->fecha = $fecha;
+      $query = $CI->db->insert('archivo',$data);
+      $res = guardarArchivo($nombre,$file,$direcion);
+      return $CI->db->insert_id();
+  }
+}
 
+if(!function_exists('guardarArchivo')){
+	function guardarArchivo($nombre,$file,$direcion)
+	{
+		$url = getHttpHost();
+    $ruta = getDirectorio();
+    $fileTmpPath = $file['tmp_name'];
+    $fileName = $file['name'];
+    $fileType = $file['type']??'';
+    $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+    $parts = explode('/', $fileType);  
+    $ext= $ext?$ext:end($parts);
+    $destinationPath = $ruta.'/'.$direcion.'/'.$nombre.'.'.$ext;
+    if (move_uploaded_file($fileTmpPath, $destinationPath)) {
+        return $direcion.'/'.$nombre.'.'.$ext;
+    } else {
+        return false;
+    }
+	}
+}
 if(!function_exists('guardarArchivo')){
 	function guardarArchivo($nombre,$file,$direcion)
 	{
@@ -135,7 +173,6 @@ if (!function_exists('usuario_unique_current')) {
     return $query->num_rows() === 0; 
   }
 }
-
 if (!function_exists('perfil_unique_current')) {
   function perfil_unique_current($nombre, $id_perfil) {
       $CI =& get_instance();

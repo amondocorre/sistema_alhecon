@@ -63,6 +63,7 @@ class Client_model extends CI_Model {
       if (!$this->validate_pefil_data($data)) {
           return FALSE; 
       }
+      $data['ap_materno'] = isset($data['ap_materno'])?$data['ap_materno']:'';
       $data['id_status'] = '1';
       $this->db->insert($this->table, $data);
       return $this->db->insert_id();
@@ -71,6 +72,7 @@ class Client_model extends CI_Model {
     if (!$this->validate_pefil_data($data, $id)) {
         return FALSE;
     }
+    $data['ap_materno'] = isset($data['ap_materno'])?$data['ap_materno']:'';
     $this->db->where('id_cliente', $id);
     return $this->db->update($this->table, $data);
   }

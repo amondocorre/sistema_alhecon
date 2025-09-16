@@ -161,13 +161,80 @@ class Impresion extends CI_Controller {
     $pago->nit = $company->nit??'';
     $pago->celular = $company->celular??'';
     $pago->numero = $idPago;
-    $pago->montoAtraso = number_format($pago->montoAtraso,2);
+    //$pago->montoAtraso = number_format($pago->montoAtraso,2);
     $pago->fecha = date('d-m-Y', strtotime($pago->fecha));
     $pago->hora = date('h:i:s A', strtotime($pago->fecha));
     $pago->logo = $company->logo_impresion?$url.$company->logo_impresion:'';
     $datos['json'] = json_encode($pago);
     $this->load->view('impresion/ReciboPago', $datos, FALSE); 
     $response = ['status' => 'success','data'=>$pago];
+    //return _send_json_response($this, 200, $response);
+  }
+  public function imprimirRecibosPagos() {
+    if (!validate_http_method($this, ['POST'])) return; 
+    $res = verifyTokenAccess();
+    if(!$res) return; 
+    $data = json_decode(file_get_contents('php://input'), true);
+    $pagos = $data['pagos']??[];
+    $company = $this->Company->findIdentity(1);
+    $url = getHttpHost();
+    $objeto = array();
+    foreach($pagos as $idPago){
+      $sql = "CALL getPagoById(?)";
+      $query = $this->db->query($sql, [$idPago]);
+      $pago = $query->result();
+      $query->free_result(); 
+      $this->db->close();
+      $this->db->initialize();
+      if(!$pago) continue;
+      $pago = $pago[0] ?? null;
+      $pago->literal = construirLiteral($pago->monto);
+      $pago->empresa = strtoupper($company->nombre??'');
+      $pago->direccion = $company->direccion??'';
+      $pago->nit = $company->nit??'';
+      $pago->celular = $company->celular??'';
+      $pago->numero = $idPago;
+      //$pago->montoAtraso = number_format($pago->montoAtraso,2);
+      $pago->fecha = date('d-m-Y', strtotime($pago->fecha));
+      $pago->hora = date('h:i:s A', strtotime($pago->fecha));
+      $pago->logo = $company->logo_impresion?$url.$company->logo_impresion:'';
+      array_push($objeto,$pago);
+    }
+    $datos['json'] = json_encode($objeto);
+    $this->load->view('impresion/RecibosPagos', $datos, FALSE); 
+    $response = ['status' => 'success','data'=>$objeto];
+    //return _send_json_response($this, 200, $response);
+  }
+  public function imprimirReciboPagoContrato($idContrato) {
+    if (!validate_http_method($this, ['GET'])) return; 
+    $res = verifyTokenAccess();
+    if(!$res) return; 
+    $data = json_decode(file_get_contents('php://input'), true);
+    $company = $this->Company->findIdentity(1);
+    $url = getHttpHost();
+    $objeto = array();
+    $sql = "CALL getPagoByIdAlquiler(?)";
+    $query = $this->db->query($sql, [$idContrato]);
+    $pagos = $query->result();
+    $query->free_result(); 
+    $this->db->close();
+    $this->db->initialize();
+    foreach($pagos as $pago){
+      $pago->literal = construirLiteral($pago->monto);
+      $pago->empresa = strtoupper($company->nombre??'');
+      $pago->direccion = $company->direccion??'';
+      $pago->nit = $company->nit??'';
+      $pago->celular = $company->celular??'';
+      //$pago->numero = $idPago;
+      //$pago->montoAtraso = number_format($pago->montoAtraso,2);
+      $pago->fecha = date('d-m-Y', strtotime($pago->fecha));
+      $pago->hora = date('h:i:s A', strtotime($pago->fecha));
+      $pago->logo = $company->logo_impresion?$url.$company->logo_impresion:'';
+      array_push($objeto,$pago);
+    }
+    $datos['json'] = json_encode($objeto);
+    $this->load->view('impresion/RecibosPagos', $datos, FALSE); 
+    $response = ['status' => 'success','data'=>$objeto];
     //return _send_json_response($this, 200, $response);
   }
 }

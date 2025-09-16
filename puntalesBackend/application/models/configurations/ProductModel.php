@@ -37,6 +37,20 @@ class ProductModel extends CI_Model {
         return array(); 
     }
   }
+  public function findVisible(){
+    $url = getHttpHost();
+    $this->db->select("id_producto, nombre, descripcion, precio_hora, precio_dia, precio_30dias, precio_reposicion, estado, concat('$url',fotografia) as fotografia,es_combo,uso_dias");
+    $this->db->from($this->table); 
+    $this->db->where('estado', 'activo');
+    $this->db->where('visible', 'si');
+    $this->db->where('es_combo','0');
+    $query = $this->db->get();
+    if ($query->num_rows() > 0) {
+        return $query->result(); 
+    } else {
+        return array(); 
+    }
+  }
   public function create($data,$idUsuario) {
     if (!$this->validate_pet_data($data)) {
         return FALSE; 

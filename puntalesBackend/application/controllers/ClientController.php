@@ -18,7 +18,7 @@ class ClientController extends CI_Controller {
     $file = $_FILES['file']??null;
     $file_ciA = $_FILES['file_ciA']??null;
     $file_ciB = $_FILES['file_ciB']??null;
-    $companies = $data['empresas']?json_decode($data['empresas']):[];
+    $companies = isset($data['empresas'])?json_decode($data['empresas']):[];
     unset($data['empresas']);
     unset($data['nombre_completo']);
     $id = $this->Client_model->create($data);
@@ -40,7 +40,9 @@ class ClientController extends CI_Controller {
         }
         $this->Client_model->updateFotoCi($url,$id,'foto_ciB');
       }
-      $response = ['status' => 'success','message'=>'Cliente creado con éxito.'];
+      $cliente = $this->Client_model->findIdentity($id); 
+      $cliente->nombre_completo = $cliente->nombres.' '.$cliente->ap_paterno.' '.$cliente->ap_materno;
+      $response = ['status' => 'success','message'=>'Cliente creado con éxito.','data'=>$cliente];
       return _send_json_response($this, 200, $response);
     } else {
       $response = ['status' => 'error', 'message' =>  array_values($this->form_validation->error_array())];
