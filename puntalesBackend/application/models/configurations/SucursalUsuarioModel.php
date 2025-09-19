@@ -42,6 +42,7 @@ class SucursalUsuarioModel extends CI_Model {
     $this->db->join('sucursal as s','s.id_sucursal=su.id_sucursal','inner');
     $this->db->where('su.estado', 1);
     $this->db->where('s.estado', 1);
+    $this->db->where('su.id_usuario', $idUsuario);
     $query = $this->db->get();
     if ($query->num_rows() > 0) {
         return $query->result(); 
