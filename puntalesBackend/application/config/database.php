@@ -78,7 +78,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-   'hostname' => '72.52.185.132',
+   'hostname' => 'localhost',//'72.52.185.132',
 	'username' => 'alhec630_admin',
 	'password' => 'Alhecon.2025',
 	'database' => 'alhec630_BDalhecon',
