@@ -211,6 +211,9 @@ class UserController extends CI_Controller {
       $idUser = $user->id_usuario;
       $access = $this->AccessMenuModel->findAllIdUser($idUser);
       $company = $this->Company->getDataId(1);
+      if(count(array_filter($access, function($a) {return isset($a->id_menu_acceso) && $a->id_menu_acceso == 0;}))==0){
+          array_unshift($access, $this->AccessMenuModel->findIdentity(0));
+      }
       $response = ['message' => 'success','menu'=>$access,'dataConpany'=>$company];
       return _send_json_response($this, 200, $response);
     }

@@ -10,6 +10,7 @@ class RentController extends CI_Controller {
         $this->load->model('configurations/ComboModel');
         $this->load->model('configurations/ProductModel');
         $this->load->model('configurations/CalendarModel');
+        $this->load->model('configurations/SucursalModel');
         $this->load->model('caja/CajaModel');       
         $this->load->model('TransportModel');
         $this->load->library('pdf');
@@ -47,7 +48,47 @@ class RentController extends CI_Controller {
         $response->message='Se registro con éxito la información.';
         return _send_json_response($this, 200, $response);
       } else {
-        $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
+        $response->status = 'error';
+        $response->message= isset($response->message)?$response->message:'Ocurrio un error al intentar registrar la información.';
+        return _send_json_response($this, 400, $response);
+      }
+    }
+    public function updateRent($id) {
+      if (!validate_http_method($this, ['POST'])) {
+        return; 
+      }
+      $res = verifyTokenAccess();
+      if(!$res){
+        return;
+      }
+      $data = json_decode(file_get_contents('php://input'), false);
+      $id_sucursal = $data->id_sucursal??1;
+      $user = $res->user;
+      $idUser = $user->id_usuario;
+      $turno = $this->CajaModel->findActive($idUser,$id_sucursal);
+      if (!$turno) {
+        $response = ['status' => 'error','message'=>'No se encontro ningun turno abierto.'];
+        return _send_json_response($this, 400, $response);
+      }
+      if (!$turno->myTurno) {
+        $response = ['status' => 'error','message'=>'Solo el usuario que aperturo puede realizar el registro.'];
+        return _send_json_response($this, 400, $response);
+      }
+      $contrato = $this->RentModel->findIdentity($id);
+      if (!$contrato) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $id."]);
+      }
+      if ($contrato->id_estado_alquiler!=3 && $contrato->id_estado_alquiler!=5) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se puede realizar modificaciones al contrato con ID $id."]);
+      }
+      $response = $this->RentModel->updateRent($id,$data,$turno,$idUser);
+      if ($response->status) {
+        $response->status = 'success';
+        $response->message='Se registro con éxito la información.';
+        return _send_json_response($this, 200, $response);
+      } else {
+        $response->status = 'error';
+        $response->message= isset($response->message)?$response->message:'Ocurrio un error al intentar guardar la información.';
         return _send_json_response($this, 400, $response);
       }
     }
@@ -71,7 +112,7 @@ class RentController extends CI_Controller {
       if (!$contrato) {
         return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
       }
-      if ($contrato->id_estado_alquiler!=2) {
+      if ($contrato->id_estado_alquiler!=3 && $contrato->id_estado_alquiler!=5) {
         return _send_json_response($this, 400, ['status' => 'error','message'=>'No se puede realizar la Recepción.']);
       }
       $turno = $this->CajaModel->findActive($idUser,$id_sucursal);
@@ -203,6 +244,40 @@ class RentController extends CI_Controller {
         $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
         return _send_json_response($this, 400, $response);
       }
+    } 
+    public function registerValidacionEntrega($idDocumento) {
+      if (!validate_http_method($this, ['PUT']))return; 
+      $res = verifyTokenAccess();
+      if(!$res)return;
+      $user = $res->user;
+      $idUser = $user->id_usuario;
+      $contrato = $this->RentModel->findIdentity($idDocumento);
+      if (!$contrato) {
+        return _send_json_response($this, 400, ['status' => 'error','message' => "No se encontró el contrato con ID $idDocumento."]);
+      }
+      if ($contrato->id_estado_alquiler!=2) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'No se puede realizar la entrega de contrato.']);
+      }
+      $fechaEntrega = $contrato->fecha_entrega??'';
+      if ($fechaEntrega>date('Y-m-d')) {
+        return _send_json_response($this, 400, ['status' => 'error','message'=>'El contrado esta firmado para entragar apartir de la fecha: '.$fechaEntrega.'.']);
+      }
+      $file = $_FILES['file']??null;
+      $idArchivoTransporte = 0;
+      if($file && $contrato->id_transporte == 0){
+        $idArchivoTransporte = registerArchivo('',$idUser,date('Y-m-d H:i:d'),'assets/transporte-externo/',$file);
+      }
+      $idSucursal = $contrato->id_sucursal??0;
+      $response = $this->RentModel->registerValidacionEntrega($idUser,$idDocumento,$idArchivoTransporte);
+      if ($response) {
+        $response = new stdClass();
+        $response->status = 'success';
+        $response->message='Se registro con éxito la Entrega.';
+        return _send_json_response($this, 200, $response);
+      } else {
+        $response = ['status' => 'error', 'message' =>  'Ocurrio un error al intentar registrar la información.'];
+        return _send_json_response($this, 400, $response);
+      }
     }
     public function delete($id) {
       if (!validate_http_method($this, ['DELETE'])) {
@@ -246,6 +321,14 @@ class RentController extends CI_Controller {
       $f_fecha = $data['f_fecha']??'';
       $id_sucursal = $data['id_sucursal']??'';
       $data = $this->RentModel->getAlquilereFilter($id_sucursal,$estado,$i_fecha,$f_fecha);
+      $response = ['status' => 'success','data'=>$data];
+      return _send_json_response($this, 200, $response);
+    }
+    public function listRentNameClient($cliente) {
+      if (!validate_http_method($this, ['GET'])) return; 
+      $res = verifyTokenAccess();
+      if(!$res) return; 
+      $data = $this->RentModel->getAlquilerNombreCliente($cliente);
       $response = ['status' => 'success','data'=>$data];
       return _send_json_response($this, 200, $response);
     }
@@ -312,6 +395,7 @@ class RentController extends CI_Controller {
       $response->productos = array_merge($this->ProductModel->findVisible(),$this->ComboModel->findVisible() );//$this->ProductModel->findActive();
       $response->combos =[];// $this->ComboModel->findActive();
       $response->formasPago = $this->PaymentMethod->findActive();
+      $response->sucursales = $this->SucursalModel->findActive();
       $response->laborales = $this->CalendarModel->obtenerLaborales(12);
       //$response->miCalendario = $this->CalendarModel->obtenerCalendario(12);
       $response->transportes = $this->TransportModel->findActive();
@@ -326,4 +410,3 @@ class RentController extends CI_Controller {
       return _send_json_response($this, 200, $response);
     }
 }
- 

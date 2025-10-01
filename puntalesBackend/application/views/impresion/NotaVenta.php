@@ -1,5 +1,5 @@
 <?php 
-
+ 
 class MYPDF extends TCPDF
 {
   public function Header(){}
@@ -14,7 +14,7 @@ $pageLayout = [216, 279];
 $pdf = new MYPDF('P', 'mm', $pageLayout, true, 'UTF-8', false);
 //$pdf->SetAutoPageBreak(true, 10); 
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Chuñitos');
+$pdf->SetAuthor('Alhecons');
 $pdf->SetTitle('nota venta');
 $pdf->SetSubject('nota venta');
 $pdf->SetKeywords('TCPDF, CodeIgniter, PDF, Voucher');
@@ -47,7 +47,7 @@ if(true){
   $pdf->SetXY(156,$pdf->GetY());
   $pdf->Cell(25, 5, "Pedido #", 'TLB', 0, 'R');
   $pdf->SetFont('helvetica', 'B', 10);
-  $pdf->Cell(15, 5, "".$data->contrato->numero, 'TRB', 1, 'C');
+  $pdf->Cell(15, 5, "".$data->contrato->numero_pedido, 'TRB', 1, 'C');
   $pdf->Cell(0, 5, "", 0, 1, 'C');
   $pdf->SetFont('helvetica', 'B', 16);
   $pdf->SetXY(96,$pdf->GetY());
@@ -59,7 +59,8 @@ if(true){
   $pdf->Cell(15, 5, "Celular:", 0, 0, 'L');
   $pdf->Cell(21, 5, $data->contrato->telefono, 'B', 1, 'L');
   $pdf->Cell(20, 6, "Dir. Obra:", 0, 0, 'R');
-  $pdf->Cell(156, 5, $data->contrato->director_obra??'', 'B', 1, 'L');
+  $contato1 = $data->contrato->contactos[0]??null;
+  $pdf->Cell(156, 5, $data->contrato->direccion_obra??'', 'B', 1, 'L');
   $pdf->ln(5);
   $pdf->SetX($pdf->getMargins()['left']+5);
   $pdf->SetFont('helvetica', 'B', 10);
@@ -97,16 +98,17 @@ if(true){
   
   $pdf->Ln(10);
   $pdf->SetFont('helvetica', '', 10);
+  $contato2 = $data->contrato->contactos[1]??null;
   $pdf->Cell(30, 5, 'Contacto en obra:', 0, 0, 'R');
-  $pdf->Cell(96, 5, '', 'B', 0, 'C');
+  $pdf->Cell(96, 5, $contato2->contacto??'', 'B', 0, 'C');
   $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
-  $pdf->Cell(30, 5, '', 'B', 1, 'C');
-  
+  $pdf->Cell(30, 5, $contato2->telefono??'', 'B', 1, 'C');
+  $contato3 = $data->contrato->contactos[2]??null;
   $pdf->SetFont('helvetica', '', 10);
   $pdf->Cell(30, 5, 'Dueño de la obra:', 0, 0, 'R');
-  $pdf->Cell(96, 5, '', 'B', 0, 'C');
+  $pdf->Cell(96, 5, $contato3->contacto??'', 'B', 0, 'C');
   $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
-  $pdf->Cell(30, 5, '', 'B', 1, 'C');
+  $pdf->Cell(30, 5, $contato3->telefono??'', 'B', 1, 'C');
     
   $pdf->SetFont('helvetica', '', 10);
   $pdf->Cell(30, 5, 'Garantia:', 0, 0, 'R');
@@ -153,7 +155,7 @@ if(true){
   $pdf->Cell(15, 5, 'Firma:', 0, 0, 'R');
   $pdf->Cell(30, 5, '', 'B', 1, 'C');
 }
-if(true){
+if($data->contrato->contrato=='1'){
 
   $pdf->AddPage();
   $logoWidth = 20;
@@ -186,8 +188,9 @@ if(true){
       $textProducto .= ' individales, ';
     }else{
       $textProducto .= ' cada uno con todos sus accesorios completos, es decir con ';
-      $cant = count($producto->detalle);
-      foreach($producto->detalle as $key2=>$det){
+      $cant = count($producto->detalle??[]);
+      $detalle = $producto->detalle??[];
+      foreach($detalle as $key2=>$det){
         if ($key2+1 === $cant) {
           $textProducto .= $det->nombre.'. ';
         }elseif($key2 === $cant){
@@ -238,8 +241,9 @@ if(true){
         $newY = $pdf->GetY() - $y;
         $pdf->setXY($pdf->getMargins()['left']+143,$y);
         $pdf->Cell(25, $newY,'', 'LR', 1, 'C');
-        $cant = count($prod->detalle);
-          foreach ($prod->detalle as $key=>$item) {
+        $cant = count($prod->detalle??[]);
+        $detalle = $producto->detalle??[];
+          foreach ($detalle as $key=>$item) {
             $pdf->SetX($pdf->getMargins()['left']+2);
             if ($key+1 == $cant) {
               //$pdf->SetDrawColor(0, 102, 204);

@@ -14,9 +14,11 @@ class Impresion extends CI_Controller {
     $this->load->model('configurations/SucursalModel');
   } 
   public function imprimirMovimientoCaja($idMovimiento) {
-   if (!validate_http_method($this, ['POST'])) return; 
-    $res = verifyTokenAccess();
+    /*
+    if (!validate_http_method($this, ['POST'])) return; 
+      $res = verifyTokenAccess();
     if(!$res) return; 
+    */
     $data = json_decode(file_get_contents('php://input'), true);
     $movi = $this->BoxMovement->findIdentity($idMovimiento);
     if(!$movi){
@@ -43,9 +45,11 @@ class Impresion extends CI_Controller {
     //return _send_json_response($this, 200, $response);
   }
   public function imprimirAperturaTurno($id) {
+    
     if (!validate_http_method($this, ['POST'])) return; 
     $res = verifyTokenAccess();
     if(!$res) return; 
+    
     $data = json_decode(file_get_contents('php://input'), true);
     $caja = $this->CajaModel->findIdentity($id);
     if(!$caja){
@@ -69,9 +73,9 @@ class Impresion extends CI_Controller {
     //return _send_json_response($this, 200, $response);
   }
   public function imprimirCierreTurno($id) {
-    /*if (!validate_http_method($this, ['POST'])) return; 
+    if (!validate_http_method($this, ['POST'])) return; 
     $res = verifyTokenAccess();
-    if(!$res) return; */
+    if(!$res) return; 
     $data = json_decode(file_get_contents('php://input'), true);
     $caja = $this->CajaModel->findIdentity($id);
     if(!$caja){
@@ -114,9 +118,9 @@ class Impresion extends CI_Controller {
     
   }
   public function imprimirContrato($numero) {
-    if (!validate_http_method($this, ['POST'])) return; 
-    $res = verifyTokenAccess();
-    if(!$res) return; 
+    //if (!validate_http_method($this, ['POST'])) return; 
+    //$res = verifyTokenAccess();
+    //if(!$res) return; 
     $data = json_decode(file_get_contents('php://input'), true);
     $url = getHttpHost();
     $data = $this->RentModel->getDataContratoByID($numero);

@@ -47,7 +47,8 @@ class ClientCompany extends CI_Model {
     }
     $data['estado'] = 1;
     //echo json_encode($data);
-    return $this->db->insert($this->table, $data);
+    $this->db->insert($this->table, $data);
+    return $this->db->insert_id();
   }
   public function delete($id) {
     $this->db->where('id_empresa', $id);

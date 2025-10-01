@@ -80,11 +80,15 @@ class DashboardController extends CI_Controller {
     if (!validate_http_method($this, ['GET'])) return; 
     ///$res = verifyTokenAccess();
     $this->load->model('RentModel');
+    $this->load->model('configurations/CalendarModel');
     $data = $this->RentModel->getAlquilerById($idContrato);
-    $productos = $data['id_estado_alquiler']==2?$this->RentModel->getProductosAlquilerById($idContrato):[];
+    $fecha = $data['fecha_devolucion']??'';
+    $productos = isset($data['id_estado_alquiler']) && ($data['id_estado_alquiler']==3 || $data['id_estado_alquiler']==5)?$this->RentModel->getProductosAlquilerById($idContrato):[];
+    $laborales = isset($data['id_estado_alquiler']) && ($data['id_estado_alquiler']==3 || $data['id_estado_alquiler']==5)?$this->CalendarModel->obtenerLaboralesLimite($fecha,6):[];
     $response = [
       'data' => $data,
-      'productos'=>$productos     
+      'productos'=>$productos,
+      'laborales'=>$laborales
     ];
     echo json_encode($response);
   }

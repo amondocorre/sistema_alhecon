@@ -174,6 +174,7 @@ $route['api/caja-movi/activate/(:any)'] = 'caja/BoxMovementController/activate/$
 // alquileres
 $route['api/rent/getDataRequerid'] = 'RentController/getDataRequerid';
 $route['api/rent/registerRent'] = 'RentController/registerRent';
+$route['api/rent/update/(:any)'] = 'RentController/updateRent/$1';
 $route['api/rent/registerReturn'] = 'RentController/registerReturn';
 $route['api/rent/listRentals'] = 'RentController/listRentals';
 $route['api/rent/getEstadoAlquiler'] = 'RentController/getEstadoAlquiler';
@@ -182,8 +183,10 @@ $route['api/rent/getAlquilerDeuda/(:any)'] = 'RentController/getAlquilerDeuda/$1
 $route['api/rent/registerPagoDeuda'] = 'RentController/registerPagoDeuda';
 $route['api/rent/registerPagoDeudas'] = 'RentController/registerPagoDeudas';
 $route['api/rent/registerEntrega/(:any)'] = 'RentController/registerEntrega/$1';
+$route['api/rent/registerValidacionEntrega/(:any)'] = 'RentController/registerValidacionEntrega/$1';
 $route['api/rent/listEntregas'] = 'RentController/listEntregas';
 $route['api/rent/listRentClient'] = 'RentController/listRentClient';
+$route['api/rent/listRentNameClient/(:any)'] = 'RentController/listRentNameClient/$1';
 //inventarios
 $route['api/inventario/getStock/(:any)'] = 'InventoryController/getStock/$1';
 $route['api/inventario/getInventario/(:any)'] = 'InventoryController/getInventario/$1';
@@ -191,6 +194,9 @@ $route['api/inventario/getInventario/(:any)'] = 'InventoryController/getInventar
 $route['api/compra/register'] = 'CompraController/register';
 $route['api/compra/update'] = 'CompraController/register';
 $route['api/compra/list'] = 'CompraController/list';
+$route['api/transfer/register'] = 'TransferController/register';
+$route['api/transfer/update'] = 'TransferController/register';
+$route['api/transfer/list'] = 'TransferController/list';
 
 
 $route['api/config/company/findActive'] = 'configurations/CompanyController/findActive';

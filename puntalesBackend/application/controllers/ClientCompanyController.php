@@ -17,7 +17,8 @@ class ClientCompanyController extends CI_Controller {
       $data = json_decode(file_get_contents('php://input'), true);
       $id = $this->ClientCompany->create($data);
       if ($id) {
-          $response = ['status' => 'success','message'=>'Empresa creado con éxito.'];
+          $company = $this->ClientCompany->findIdentity($id);
+          $response = ['status' => 'success','message'=>'Empresa creado con éxito.','data'=>$company];
           return _send_json_response($this, 200, $response);
       } else {
         $response = ['status' => 'error', 'message' =>  array_values($this->form_validation->error_array())];

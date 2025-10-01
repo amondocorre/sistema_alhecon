@@ -39,9 +39,9 @@ class AccessMenuModel extends CI_Model {
       if($acces->nivel_superior === $idSubMenu){
         $acces->nivel = $nivel;
         if(property_exists($acces, 'id_botones')){
-          $acces->id_botones = $acces->id_botones?json_decode($acces->id_botones):[];
+          $acces->id_botones = $acces->id_botones?json_decode($acces->id_botones,false):[];
         }
-        $acces->subMenu = $this->getSubMenu($access,$acces->id_menu_acceso,$nivel+1);
+        $acces->subMenu = $acces->id_menu_acceso>0?$this->getSubMenu($access,$acces->id_menu_acceso,$nivel+1):[];
         array_push($resAccess,$acces);
       }
     }

@@ -19,13 +19,14 @@ class DashboardModel extends CI_Model {
     $query = $this->db->query("
         SELECT 
         COUNT(*) AS total,
-        SUM(CASE WHEN sexo = 'M' THEN 1 ELSE 0 END) AS masculino,
-        SUM(CASE WHEN sexo = 'F' THEN 1 ELSE 0 END) AS femenino
+        0 AS masculino,
+        0 AS femenino
         FROM cliente;
     ");
     return $query->row(); // Devuelve un solo objeto con ->total
   }
   // Se obtiene el total de mascotas en guarderia existen en este momento
+  /*
   public function get_mascotas_estancia() {
     
     $this->db->select("count(estado) as total");
@@ -39,22 +40,29 @@ class DashboardModel extends CI_Model {
         return (object) ['total' => 0]; // Devuelve un objeto con total = 0
     }
   }
-
+  */
   public function get_ingresos_diarios($id_sucursal){
-    $this->db->select("
-    DATE(fecha_movimiento) AS dia,
-    SUM(CASE WHEN tipo = 'ingreso' THEN monto ELSE 0 END) AS ingresos,
-    SUM(CASE WHEN tipo = 'egreso' THEN monto ELSE 0 END) AS egresos
-    ");
+   // Subconsulta 1: pagos
+    $this->db->select("DATE(fecha_pago) AS dia, monto, 'ingreso' AS tipo");
+    $this->db->from('pago');
+    $this->db->where('id_sucursal', 1);
+    $this->db->where('anulado', 'no');
+    $this->db->where('fecha_pago >=', date('Y-m-d', strtotime('-30 days')));
+    $sql1 = $this->db->get_compiled_select();
+    // Subconsulta 2: movimientos
+    $this->db->select("DATE(fecha_movimiento) AS dia, monto, tipo");
     $this->db->from('movimientos_caja');
+    $this->db->where('id_sucursal', 1);
     $this->db->where('fecha_movimiento >=', date('Y-m-d', strtotime('-30 days')));
-    $this->db->where('id_sucursal',$id_sucursal);
-    $this->db->group_by('DATE(fecha_movimiento)');
-    $this->db->order_by('DATE(fecha_movimiento)', 'ASC');
-
-    $query = $this->db->get();
-
-    if ($query->num_rows() > 0) {
+    $sql2 = $this->db->get_compiled_select();
+    $union_sql = "($sql1) UNION ALL ($sql2)";
+    $final_sql = " SELECT  dia,
+        SUM(CASE WHEN tipo = 'ingreso' THEN monto ELSE 0 END) AS ingresos,
+        SUM(CASE WHEN tipo = 'egreso' THEN monto ELSE 0 END) AS egresos
+      FROM ($union_sql) AS movimientos GROUP BY dia ORDER BY dia ASC";
+    $query = $this->db->query($final_sql);
+    $resultado = $query->result();
+    if ($resultado) {
         return $query->result(); // Devuelve un array de objetos por día
     } else {
         return [];

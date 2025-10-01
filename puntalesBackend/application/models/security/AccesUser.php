@@ -86,7 +86,7 @@ class AccesUser extends CI_Model {
         if(property_exists($acces, 'botones')){
           $acces->botones = $acces->botones?json_decode($acces->botones):[];
         }
-        $acces->subMenu = $this->getSubMenu($access,$acces->id_menu_acceso,$nivel+1);
+        $acces->subMenu = $acces->id_menu_acceso>0?$this->getSubMenu($access,$acces->id_menu_acceso,$nivel+1):[];
         //$acces->subMenu = usort($acces->subMenu, function($a, $b){return strcmp($a->numero_orden, $b->numero_orden);});
         array_push($resAccess,$acces);
       }

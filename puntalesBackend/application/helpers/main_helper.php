@@ -136,8 +136,8 @@ if(!function_exists('guardarArchivo')){
     }
 	}
 }
-if(!function_exists('guardarArchivo')){
-	function guardarArchivo($nombre,$file,$direcion)
+if(!function_exists('guardarArchivo2')){
+	function guardarArchivo2($nombre,$file,$direcion)
 	{
 		$url = getHttpHost();
     $ruta = getDirectorio();

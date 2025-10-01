@@ -139,6 +139,26 @@ class CalendarModel extends CI_Model {
     }
     return $res;
   }
+  public function obtenerLaboralesLimite($fechaInicio,$cantidadMeses){
+    $date = new DateTime(date('Y-m-d'));
+    $numMes = $date->format('m');
+    $date->modify('+'.($cantidadMeses). ' month');
+    $fechaFin = $date->format('Y-m-d');
+    $fechas = $this->db
+        ->select('*')
+        ->from('calendario')
+        ->where('fecha >=', $fechaInicio?$fechaInicio:date('Y-m-d'))
+        ->where('es_laboral', 1)
+        ->where('fecha <=', $fechaFin)
+        ->order_by('fecha', 'ASC')
+        ->get()
+        ->result();
+    $res = array();
+    foreach($fechas as $key=>$fecha){
+      array_push($res,$fecha->fecha);
+    }
+    return $res;
+  }
   public function obtenerCalendario($cantidadMeses){
     $date = new DateTime(date('Y-m-d'));
     $numMes = $date->format('m');
