@@ -59,7 +59,6 @@ if(true){
   $pdf->Cell(15, 5, "Celular:", 0, 0, 'L');
   $pdf->Cell(21, 5, $data->contrato->telefono, 'B', 1, 'L');
   $pdf->Cell(20, 6, "Dir. Obra:", 0, 0, 'R');
-  $contato1 = $data->contrato->contactos[0]??null;
   $pdf->Cell(156, 5, $data->contrato->direccion_obra??'', 'B', 1, 'L');
   $pdf->ln(5);
   $pdf->SetX($pdf->getMargins()['left']+5);
@@ -98,17 +97,28 @@ if(true){
   
   $pdf->Ln(10);
   $pdf->SetFont('helvetica', '', 10);
-  $contato2 = $data->contrato->contactos[1]??null;
-  $pdf->Cell(30, 5, 'Contacto en obra:', 0, 0, 'R');
-  $pdf->Cell(96, 5, $contato2->contacto??'', 'B', 0, 'C');
-  $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
-  $pdf->Cell(30, 5, $contato2->telefono??'', 'B', 1, 'C');
-  $contato3 = $data->contrato->contactos[2]??null;
-  $pdf->SetFont('helvetica', '', 10);
-  $pdf->Cell(30, 5, 'Dueño de la obra:', 0, 0, 'R');
-  $pdf->Cell(96, 5, $contato3->contacto??'', 'B', 0, 'C');
-  $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
-  $pdf->Cell(30, 5, $contato3->telefono??'', 'B', 1, 'C');
+  $contacto1 = $data->contrato->contactos[0]??null;
+  if($contacto1){
+    $pdf->Cell(30, 5, 'Contacto en obra:', 0, 0, 'R');
+    $pdf->Cell(96, 5, ($contacto1->contacto??'').' - '.($contacto1->descripcion??''), 'B', 0, 'C');
+    $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
+    $pdf->Cell(30, 5, $contacto1->telefono??'', 'B', 1, 'C');
+  }
+  $contacto2 = $data->contrato->contactos[1]??null;
+  if($contacto2){
+    $pdf->Cell(30, 5, 'Contacto en obra:', 0, 0, 'R');
+    $pdf->Cell(96, 5, ($contacto2->contacto??'').' - '.($contacto2->descripcion??''), 'B', 0, 'C');
+    $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
+    $pdf->Cell(30, 5, $contacto2->telefono??'', 'B', 1, 'C');
+  }
+  $contacto3 = $data->contrato->contactos[2]??null;
+  if($contacto3){
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->Cell(30, 5, 'Contacto en obra:', 0, 0, 'R');
+    $pdf->Cell(96, 5, ($contacto2->contacto??'').' - '.($contacto2->descripcion??''), 'B', 0, 'C');
+    $pdf->Cell(20, 5, 'Celular:', 0, 0, 'R');
+    $pdf->Cell(30, 5, $contacto3->telefono??'', 'B', 1, 'C');
+  }
     
   $pdf->SetFont('helvetica', '', 10);
   $pdf->Cell(30, 5, 'Garantia:', 0, 0, 'R');

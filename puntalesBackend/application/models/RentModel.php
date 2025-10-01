@@ -729,6 +729,7 @@ class RentModel extends CI_Model {
     }
   }
   public function getAlquilerDeuda($idSucursal) {
+    $url = getHttpHost();
     $sql = "CALL getalquilerDeuda('$idSucursal');";
     $query = $this->db->query($sql);
     $alquileres = $query->result_array();
@@ -738,6 +739,7 @@ class RentModel extends CI_Model {
     foreach($alquileres as $key=>$alquiler){
       $detalle = isset($alquiler['detalle']) ? json_decode(utf8_encode($alquiler['detalle'])) : []; 
       $alquileres[$key]['detalle']=$detalle;
+      $alquileres[$key]['fotografia_movilidad']=isset($alquiler['fotografia_movilidad'])?$url.$alquiler['fotografia_movilidad']:null;
     }
     return $alquileres;
   }
@@ -755,6 +757,7 @@ class RentModel extends CI_Model {
                       GROUP BY id_alquiler_documento) pagos", 
                       "pagos.id_alquiler_documento = a.id_alquiler_documento", "left");
     if($idSucursal>0) $this->db->where('id_sucursal',$idSucursal);
+    $this->db->where('contrato','1');
     $this->db->where_in('a.id_estado_alquiler', [3,5]);
     $this->db->order_by('fecha_devolucion', 'asc');
     $this->db->limit($limit, $offset);
@@ -774,6 +777,7 @@ class RentModel extends CI_Model {
                       GROUP BY id_alquiler_documento) pagos", 
                       "pagos.id_alquiler_documento = a.id_alquiler_documento", "left");
     if($idSucursal>0)  $this->db->where('id_sucursal',$idSucursal);
+    $this->db->where('contrato','1');
     $this->db->where_in('a.id_estado_alquiler',[1,2]);
     $this->db->limit($limit, $offset);
     return $this->db->get()->result();
@@ -781,11 +785,13 @@ class RentModel extends CI_Model {
   public function getTotalAlquileres($idSucursal) {
     if($idSucursal>0)  $this->db->where('id_sucursal', $idSucursal);
     $this->db->where_in('id_estado_alquiler', [3,5]);
+    $this->db->where('contrato','1');
     return $this->db->count_all_results('alquiler_documento');
   }
   public function getTotalAlquileresEntrega($idSucursal) {
     if($idSucursal>0) $this->db->where('id_sucursal', $idSucursal);
     $this->db->where_in('id_estado_alquiler',[1,2]);
+    $this->db->where('contrato','1');
     return $this->db->count_all_results('alquiler_documento');
   }
 }
