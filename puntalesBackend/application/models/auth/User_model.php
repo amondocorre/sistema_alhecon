@@ -221,7 +221,8 @@ class User_model extends CI_Model {
       $this->db->where('btn.estado', 1); 
       $this->db->where('abu.estado', 1); 
       $this->db->where('abu.id_acceso', $id_acces); 
-      $this->db->where('abu.id_usuario', $id_usuario); 
+      $this->db->where('abu.id_usuario', $id_usuario);
+      $this->db->order_by('btn.id_boton'); 
       $query = $this->db->get();
       if ($query->num_rows() > 0) {
           return $query->result(); 

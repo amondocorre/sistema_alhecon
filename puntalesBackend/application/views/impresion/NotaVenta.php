@@ -45,6 +45,8 @@ if(true){
   $pdf->Cell(0, 5, "Telfs.: ".$data->celular, 0, 1, 'R');
   $pdf->Cell(0, 5, "Usuario: ".$data->contrato->usuario, 0, 1, 'R');
   $pdf->SetXY(156,$pdf->GetY());
+  $pdf->Cell(0, 5, "Codigo cotrato: ".$data->contrato->numero, 0, 1, 'R');
+  $pdf->SetXY(156,$pdf->GetY());
   $pdf->Cell(25, 5, "Pedido #", 'TLB', 0, 'R');
   $pdf->SetFont('helvetica', 'B', 10);
   $pdf->Cell(15, 5, "".$data->contrato->numero_pedido, 'TRB', 1, 'C');

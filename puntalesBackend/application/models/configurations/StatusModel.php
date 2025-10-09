@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class StatusModel extends CI_Model {
-    protected $table = 'ststus'; 
+    protected $table = 'status'; 
     public function __construct() {
         parent::__construct();
     }
